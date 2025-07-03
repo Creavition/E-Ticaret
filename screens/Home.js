@@ -1,5 +1,5 @@
 // Home.js
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import {
     View,
@@ -15,6 +15,64 @@ import { useFavorites } from '../contexts/FavoritesContext';
 import { useFilter } from '../contexts/FilterContext';
 import SelectableOptions from '../components/SelectableOptions';
 import { getAllProducts } from '../utils/productUtils';
+
+const ProductCard = React.memo(({ item, isFavorite, isFlashSale, hasFastDelivery, onProductPress, onFavoritePress }) => {
+    const handleProductPress = useCallback(() => {
+        onProductPress(item);
+    }, [item, onProductPress]);
+
+    const handleFavoritePress = useCallback(() => {
+        onFavoritePress(item.id);
+    }, [item.id, onFavoritePress]);
+
+    return (
+        <TouchableOpacity
+            onPress={handleProductPress}
+            style={styles.card}
+        >
+            {/* Flash Sale or Best Selling Badge */}
+            {isFlashSale ? (
+                <View style={styles.flashSaleBadge}>
+                    <Text style={styles.flashSaleText}>FLASH</Text>
+                    <Text style={styles.flashSaleText}>SALE</Text>
+                </View>
+            ) : (
+                <View style={styles.bestSellingBadge}>
+                    <Text style={styles.bestSellingText}>BEST</Text>
+                    <Text style={styles.bestSellingText}>SELLING</Text>
+                </View>
+            )}
+
+            <View style={styles.imageContainer}>
+                <Image source={{ uri: item.image }} style={styles.image} />
+                <TouchableOpacity
+                    onPress={handleFavoritePress}
+                    style={styles.favoriteIcon}
+                >
+                    <Ionicons
+                        name={isFavorite ? 'heart' : 'heart-outline'}
+                        size={18}
+                        color={isFavorite ? 'orange' : 'gray'}
+                    />
+                </TouchableOpacity>
+            </View>
+
+            {/* Fast Delivery or BestSeller Label */}
+            {hasFastDelivery ? (
+                <View style={styles.fastDeliveryBadge}>
+                    <Text style={styles.fastDeliveryText}>Fast Delivery</Text>
+                </View>
+            ) : (
+                <View style={styles.bestSellerBadge}>
+                    <Text style={styles.bestSellerText}>BestSeller</Text>
+                </View>
+            )}
+
+            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.price}>{item.price}</Text>
+        </TouchableOpacity>
+    );
+});
 
 export default function Home() {
     const navigation = useNavigation();
@@ -56,16 +114,16 @@ export default function Home() {
     const flashSaleProducts = useMemo(() => {
         const categories = ['Jacket', 'Pants', 'Shoes', 'T-Shirt'];
         const flashSaleIds = new Set();
-        
+
         categories.forEach(category => {
             const categoryProducts = allProducts
                 .filter(product => product.category === category)
                 .sort((a, b) => parsePrice(a.price) - parsePrice(b.price))
                 .slice(0, 6);
-            
+
             categoryProducts.forEach(product => flashSaleIds.add(product.id));
         });
-        
+
         return flashSaleIds;
     }, [allProducts]);
 
@@ -111,59 +169,30 @@ export default function Home() {
             });
     }, [searchText, minPrice, maxPrice, selectedCategory, selectedSize, sortOption]);
 
-    const renderItem = ({ item }) => {
+    const handleProductPress = useCallback((product) => {
+        navigation.navigate('ProductDetail', { product });
+    }, [navigation]);
+
+    const handleFavoritePress = useCallback((productId) => {
+        toggleFavorite(productId);
+    }, [toggleFavorite]);
+
+    const renderItem = useCallback(({ item }) => {
         const isFavorite = favoriteItems[item.id];
         const isFlashSale = flashSaleProducts.has(item.id);
         const hasFastDelivery = fastDeliveryProducts.has(item.id);
-        
+
         return (
-            <TouchableOpacity
-                onPress={() => navigation.navigate('ProductDetail', { product: item })}
-                style={styles.card}
-            >
-                {/* Flash Sale or Best Selling Badge */}
-                {isFlashSale ? (
-                    <View style={styles.flashSaleBadge}>
-                        <Text style={styles.flashSaleText}>FLASH</Text>
-                        <Text style={styles.flashSaleText}>SALE</Text>
-                    </View>
-                ) : (
-                    <View style={styles.bestSellingBadge}>
-                        <Text style={styles.bestSellingText}>BEST</Text>
-                        <Text style={styles.bestSellingText}>SELLING</Text>
-                    </View>
-                )}
-                
-                <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                    <Image source={{ uri: item.image }} style={styles.image} />
-                    <TouchableOpacity
-                        onPress={() => toggleFavorite(item.id)}
-                        style={styles.favoriteIcon}
-                    >
-                        <Ionicons
-                            name={isFavorite ? 'heart' : 'heart-outline'}
-                            size={18}
-                            color={isFavorite ? 'orange' : 'gray'}
-                        />
-                    </TouchableOpacity>
-                </View>
-                
-                {/* Fast Delivery or BestSeller Label */}
-                {hasFastDelivery ? (
-                    <View style={styles.fastDeliveryBadge}>
-                        <Text style={styles.fastDeliveryText}>Fast Delivery</Text>
-                    </View>
-                ) : (
-                    <View style={styles.bestSellerBadge}>
-                        <Text style={styles.bestSellerText}>BestSeller</Text>
-                    </View>
-                )}
-                
-                <Text style={styles.name}>{item.name}</Text>
-                <Text style={styles.price}>{item.price}</Text>
-            </TouchableOpacity>
+            <ProductCard
+                item={item}
+                isFavorite={isFavorite}
+                isFlashSale={isFlashSale}
+                hasFastDelivery={hasFastDelivery}
+                onProductPress={handleProductPress}
+                onFavoritePress={handleFavoritePress}
+            />
         );
-    };
+    }, [favoriteItems, flashSaleProducts, fastDeliveryProducts, handleProductPress, handleFavoritePress]);
 
     return (
         <View style={styles.container}>
@@ -188,15 +217,11 @@ export default function Home() {
                 contentContainerStyle={styles.productList}
                 showsVerticalScrollIndicator={false}
                 removeClippedSubviews={true}
-                maxToRenderPerBatch={10}
+                maxToRenderPerBatch={8}
                 updateCellsBatchingPeriod={50}
-                initialNumToRender={8}
-                windowSize={10}
-                getItemLayout={(data, index) => ({
-                    length: 200,
-                    offset: 200 * Math.floor(index / 2),
-                    index,
-                })}
+                initialNumToRender={6}
+                windowSize={8}
+                keyboardShouldPersistTaps="handled"
             />
         </View>
     );
@@ -235,7 +260,8 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     productList: {
-        paddingBottom: 20,
+        paddingBottom: 50,
+        paddingHorizontal: 5,
     },
     card: {
         borderWidth: 2,
@@ -246,6 +272,10 @@ const styles = StyleSheet.create({
         padding: 10,
         alignItems: 'center',
         position: 'relative',
+    },
+    imageContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     image: {
         width: 120,
