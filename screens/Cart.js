@@ -1,14 +1,37 @@
-import { useContext, useMemo, useCallback } from 'react';
-import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { useContext, useMemo, useCallback, useState, useEffect } from 'react';
+import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, StatusBar } from 'react-native';
 import { CartContext } from '../contexts/CartContext';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { getAllProducts } from '../utils/productUtils';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function Cart() {
   const { cartItems, removeFromCart, increaseAmount, decreaseAmount } = useContext(CartContext);
   const navigation = useNavigation();
-  const allProducts = getAllProducts();
+  const { translations, language } = useLanguage();
+  const { theme, isDarkMode } = useTheme();
+  const [allProducts, setAllProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Ürünleri yükle
+  const loadProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const products = await getAllProducts();
+      setAllProducts(products);
+    } catch (error) {
+      console.error('Error loading products:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Sayfa yüklendiğinde ve dil değiştiğinde ürünleri yükle
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts, language]);
 
   const parsePrice = (priceStr) => parseFloat(priceStr.replace('₺', '').replace(',', '.'));
 
@@ -51,17 +74,17 @@ export default function Cart() {
     const hasFastDelivery = fastDeliveryProducts.has(item.id);
 
     return (
-      <View style={styles.itemContainer}>
+      <View style={[styles.itemContainer, { backgroundColor: isDarkMode ? '#333' : '#fff' }]}>
         {/* Flash Sale or Best Selling Badge */}
         {isFlashSale ? (
           <View style={styles.flashSaleBadge}>
-            <Text style={styles.flashSaleText}>FLASH</Text>
-            <Text style={styles.flashSaleText}>SALE</Text>
+            <Text style={styles.flashSaleText}>{translations.flashSale.split(' ')[0]}</Text>
+            <Text style={styles.flashSaleText}>{translations.flashSale.split(' ')[1]}</Text>
           </View>
         ) : (
           <View style={styles.bestSellingBadge}>
-            <Text style={styles.bestSellingText}>BEST</Text>
-            <Text style={styles.bestSellingText}>SELLING</Text>
+            <Text style={styles.bestSellingText}>{translations.bestSelling.split(' ')[0]}</Text>
+            <Text style={styles.bestSellingText}>{translations.bestSelling.split(' ')[1]}</Text>
           </View>
         )}
 
@@ -76,18 +99,18 @@ export default function Cart() {
           {/* Fast Delivery or BestSeller Label */}
           {hasFastDelivery ? (
             <View style={styles.fastDeliveryBadge}>
-              <Text style={styles.fastDeliveryText}>Fast Delivery</Text>
+              <Text style={styles.fastDeliveryText}>{translations.fastDelivery}</Text>
             </View>
           ) : (
             <View style={styles.bestSellerBadge}>
-              <Text style={styles.bestSellerText}>BestSeller</Text>
+              <Text style={styles.bestSellerText}>{translations.bestSeller}</Text>
             </View>
           )}
         </View>
 
         <View style={styles.itemDetails}>
           <View style={styles.itemHeader}>
-            <Text style={styles.name}>{item.name}</Text>
+            <Text style={[styles.name, { color: isDarkMode ? '#fff' : '#333' }]}>{item.name}</Text>
             <TouchableOpacity
               style={styles.removeButton}
               onPress={() => removeFromCart(index)}
@@ -97,17 +120,17 @@ export default function Cart() {
           </View>
 
           <View style={styles.detailsRow}>
-            <Text style={styles.detailLabel}>Size:</Text>
-            <Text style={styles.detailValue}>{item.size}</Text>
+            <Text style={styles.detailLabel}>{translations.size}:</Text>
+            <Text style={[styles.detailValue, { color: isDarkMode ? '#fff' : '#333' }]}>{item.size}</Text>
           </View>
 
           <View style={styles.detailsRow}>
-            <Text style={styles.detailLabel}>Price:</Text>
-            <Text style={styles.detailValue}>{item.price}</Text>
+            <Text style={styles.detailLabel}>{translations.price}:</Text>
+            <Text style={[styles.detailValue, { color: isDarkMode ? '#fff' : '#333' }]}>{item.price}</Text>
           </View>
 
           <View style={styles.detailsRow}>
-            <Text style={styles.detailLabel}>Quantity:</Text>
+            <Text style={styles.detailLabel}>{translations.quantity}:</Text>
             <View style={styles.amountContainer}>
               <TouchableOpacity
                 style={styles.amountButton}
@@ -115,7 +138,7 @@ export default function Cart() {
               >
                 <Text style={styles.buttonText}>-</Text>
               </TouchableOpacity>
-              <Text style={styles.amountText}>{item.amount}</Text>
+              <Text style={[styles.amountText, { color: isDarkMode ? '#fff' : '#333' }]}>{item.amount}</Text>
               <TouchableOpacity
                 style={styles.amountButton}
                 onPress={() => increaseAmount(index)}
@@ -126,7 +149,7 @@ export default function Cart() {
           </View>
 
           <View style={styles.detailsRow}>
-            <Text style={styles.detailLabel}>Subtotal:</Text>
+            <Text style={styles.detailLabel}>{translations.total}:</Text>
             <Text style={styles.subtotalValue}>
               {(parseFloat(item.price.replace('₺', '').replace(',', '.')) * item.amount).toFixed(2)} ₺
             </Text>
@@ -134,7 +157,7 @@ export default function Cart() {
         </View>
       </View>
     );
-  }, [flashSaleProducts, fastDeliveryProducts, decreaseAmount, increaseAmount, removeFromCart]);
+  }, [flashSaleProducts, fastDeliveryProducts, decreaseAmount, increaseAmount, removeFromCart, translations, isDarkMode]);
 
   const total = cartItems.reduce((sum, item) => {
     const price = parseFloat(item.price.replace('₺', '').replace(',', '.'));
@@ -143,44 +166,44 @@ export default function Cart() {
 
   if (total === 0) {
     return (
-      <View style={styles.emptyContainer}>
+      <View style={[styles.emptyContainer, { backgroundColor: isDarkMode ? theme.background : '#f8f9fa' }]}>
         <Image style={styles.image} source={require("../assets/images/abandoned-cart.png")} />
-        <Text style={styles.emptyTitle}>Your Cart is Empty</Text>
-        <Text style={styles.emptySubtitle}>You haven't added any items to your cart yet</Text>
+        <Text style={[styles.emptyTitle, { color: isDarkMode ? '#fff' : '#333' }]}>{translations.yourCartEmpty}</Text>
+        <Text style={[styles.emptySubtitle, { color: isDarkMode ? '#b3b3b3' : '#666' }]}>{translations.noItemsInCart}</Text>
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Home')}>
           <Ionicons name="storefront-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-          <Text style={styles.buttonText}>Continue Shopping</Text>
+          <Text style={styles.buttonText}>{translations.continueShopping}</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Cart</Text>
+    <View style={[styles.container, { backgroundColor: isDarkMode ? theme.background : '#f8f9fa' }]}>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={theme.statusBarBackground} />
+      <Text style={[styles.title, { color: isDarkMode ? '#fff' : '#333' }]}>{translations.cart}</Text>
       <FlatList
         data={cartItems}
         keyExtractor={(item, index) => item.name + index}
         renderItem={renderItem}
         contentContainerStyle={{ paddingBottom: 20 }}
       />
-      <View style={styles.checkoutContainer}>
+      <View style={[styles.checkoutContainer, { backgroundColor: isDarkMode ? '#2d2d2d' : '#fff' }]}>
         <View style={styles.totalContainer}>
-          <Text style={styles.totalLabel}>Total Amount</Text>
-          <Text style={styles.total}>{total.toFixed(2)} ₺</Text>
+          <Text style={[styles.totalLabel, { color: isDarkMode ? '#b3b3b3' : '#666' }]}>{translations.totalAmount}</Text>
+          <Text style={[styles.total, { color: isDarkMode ? '#fff' : '#333' }]}>{total.toFixed(2)} ₺</Text>
         </View>
         <TouchableOpacity
           style={styles.checkoutButton}
           onPress={() => { navigation.navigate("Payment") }}
         >
           <Ionicons name="card-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-          <Text style={styles.checkoutButtonText}>Proceed to Payment</Text>
+          <Text style={styles.checkoutButtonText}>{translations.proceedToPayment}</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -248,7 +271,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   itemContainer: {
-    backgroundColor: '#fff',
     padding: 16,
     borderRadius: 16,
     marginBottom: 12,
@@ -298,7 +320,6 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
     flex: 1,
     marginRight: 8,
   },
@@ -315,7 +336,6 @@ const styles = StyleSheet.create({
   },
   detailValue: {
     fontSize: 14,
-    color: '#333',
     fontWeight: '600',
   },
   amountContainer: {
@@ -329,11 +349,6 @@ const styles = StyleSheet.create({
     height: 24,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#fff',
   },
   amountText: {
     fontSize: 14,

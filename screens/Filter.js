@@ -9,12 +9,17 @@ import {
 } from 'react-native';
 import { useProduct } from '../contexts/ProductContext';
 import { useFilter } from '../contexts/FilterContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
 
 export default function Filter() {
     const navigation = useNavigation();
-    const { sizeMap } = useProduct(); // context'ten alınır
-    const { filters, applyFilters } = useFilter(); // FilterContext'ten alınır
+    const { sizeMap } = useProduct();
+    const { filters, applyFilters } = useFilter();
+    const { translations } = useLanguage();
+    const { theme, isDarkMode } = useTheme();
+
     const categories = Object.keys(sizeMap);
 
     const [selectedCategory, setSelectedCategory] = useState(filters.selectedCategory);
@@ -40,30 +45,57 @@ export default function Filter() {
         setSelectedSize(size === selectedSize ? null : size);
     };
 
+    // Kategori isimlerini çevir
+    const getCategoryName = (category) => {
+        switch (category) {
+            case 'Jacket': return translations.jacket;
+            case 'Pants': return translations.pants;
+            case 'Shoes': return translations.shoes;
+            case 'T-Shirt': return translations.tshirt;
+            default: return category;
+        }
+    };
+
     return (
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView contentContainerStyle={[styles.container, { backgroundColor: isDarkMode ? theme.background : '#fff' }]}>
             {/* Price Filter */}
-            <Text style={styles.text}>Price</Text>
+            <Text style={[styles.text, { color: isDarkMode ? theme.text : '#000' }]}>{translations.price}</Text>
             <View style={styles.rowContainer}>
                 <TextInput
-                    style={styles.textBox}
+                    style={[
+                        styles.textBox,
+                        {
+                            borderColor: isDarkMode ? theme.border : 'black',
+                            backgroundColor: isDarkMode ? theme.surface : '#fff',
+                            color: isDarkMode ? theme.text : '#000'
+                        }
+                    ]}
                     keyboardType='numeric'
-                    placeholder='Min Amount'
+                    placeholder={translations.minAmount}
+                    placeholderTextColor={isDarkMode ? theme.textTertiary : '#999'}
                     value={minPrice}
                     onChangeText={setMinPrice}
                 />
-                <Text style={styles.dash}>-</Text>
+                <Text style={[styles.dash, { color: isDarkMode ? theme.text : '#000' }]}>-</Text>
                 <TextInput
-                    style={styles.textBox}
+                    style={[
+                        styles.textBox,
+                        {
+                            borderColor: isDarkMode ? theme.border : 'black',
+                            backgroundColor: isDarkMode ? theme.surface : '#fff',
+                            color: isDarkMode ? theme.text : '#000'
+                        }
+                    ]}
                     keyboardType='numeric'
-                    placeholder='Max Amount'
+                    placeholder={translations.maxAmount}
+                    placeholderTextColor={isDarkMode ? theme.textTertiary : '#999'}
                     value={maxPrice}
                     onChangeText={setMaxPrice}
                 />
             </View>
 
             {/* Category Buttons */}
-            <Text style={styles.text}>Category</Text>
+            <Text style={[styles.text, { color: isDarkMode ? theme.text : '#000' }]}>{translations.category}</Text>
             <View style={styles.rowContainer}>
                 {categories.map((cat) => (
                     <TouchableOpacity
@@ -71,23 +103,28 @@ export default function Filter() {
                         onPress={() => toggleCategory(cat)}
                         style={[
                             styles.categoryButton,
+                            {
+                                borderColor: isDarkMode ? theme.border : 'gray',
+                                backgroundColor: isDarkMode ? theme.surface : '#fff'
+                            },
                             selectedCategory === cat && styles.categoryButtonSelected
                         ]}
                     >
                         <Text
                             style={[
                                 styles.categoryText,
+                                { color: isDarkMode ? theme.text : 'black' },
                                 selectedCategory === cat && styles.categoryTextSelected
                             ]}
                         >
-                            {cat}
+                            {getCategoryName(cat)}
                         </Text>
                     </TouchableOpacity>
                 ))}
             </View>
 
             {/* Size Options */}
-            <Text style={styles.text}>Size Options</Text>
+            <Text style={[styles.text, { color: isDarkMode ? theme.text : '#000' }]}>{translations.sizeOptionsFilter}</Text>
             {selectedCategory ? (
                 <View style={styles.rowContainer}>
                     {sizeMap[selectedCategory].map((size) => (
@@ -96,11 +133,16 @@ export default function Filter() {
                             onPress={() => toggleSize(size)}
                             style={[
                                 styles.sizeBox,
+                                {
+                                    borderColor: isDarkMode ? theme.border : '#999',
+                                    backgroundColor: isDarkMode ? theme.surface : '#f2f2f2'
+                                },
                                 selectedSize === size && styles.sizeBoxSelected
                             ]}
                         >
                             <Text style={[
                                 styles.sizeText,
+                                { color: isDarkMode ? theme.text : '#333' },
                                 selectedSize === size && styles.sizeTextSelected
                             ]}>
                                 {size}
@@ -109,7 +151,9 @@ export default function Filter() {
                     ))}
                 </View>
             ) : (
-                <Text style={styles.placeholderText}>Please select a category</Text>
+                <Text style={[styles.placeholderText, { color: isDarkMode ? theme.textSecondary : '#888' }]}>
+                    {translations.selectCategory}
+                </Text>
             )}
 
             {/* Buttons */}
@@ -122,7 +166,7 @@ export default function Filter() {
                         setSelectedSize(null);
                         setMinPrice('');
                         setMaxPrice('');
-                        
+
                         // Context'i de temizle
                         applyFilters({
                             minPrice: null,
@@ -132,7 +176,7 @@ export default function Filter() {
                         });
                     }}
                 >
-                    <Text style={[styles.buttonText, styles.clearButtonText]}>Clear</Text>
+                    <Text style={[styles.buttonText, styles.clearButtonText]}>{translations.clear}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -145,21 +189,18 @@ export default function Filter() {
                             selectedCategory,
                             selectedSize
                         });
-                        
+
                         // HomeScreen sayfasına navigate et
                         navigation.navigate('HomeScreen');
                     }}
                 >
-                    <Text style={styles.buttonText}>Apply</Text>
+                    <Text style={styles.buttonText}>{translations.apply}</Text>
                 </TouchableOpacity>
             </View>
 
         </ScrollView>
     );
 }
-
-
-
 
 const styles = StyleSheet.create({
     container: {
@@ -171,6 +212,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginTop: 20,
         marginBottom: 10,
+        color: '#000',
     },
     dash: {
         fontSize: 24,
@@ -187,9 +229,11 @@ const styles = StyleSheet.create({
         borderRadius: 6,
         borderWidth: 2,
         borderColor: 'black',
+        backgroundColor: '#fff',
         height: 50,
         width: 140,
         paddingLeft: 15,
+        color: '#000',
     },
     categoryButton: {
         paddingVertical: 10,

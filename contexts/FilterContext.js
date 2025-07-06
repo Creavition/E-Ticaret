@@ -37,12 +37,12 @@ export function FilterProvider({ children }) {
     };
 
     return (
-        <FilterContext.Provider value={{ 
-            filters, 
-            setFilters, 
-            updateFilters, 
-            clearFilters, 
-            applyFilters 
+        <FilterContext.Provider value={{
+            filters,
+            setFilters,
+            updateFilters,
+            clearFilters,
+            applyFilters
         }}>
             {children}
         </FilterContext.Provider>

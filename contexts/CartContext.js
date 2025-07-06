@@ -41,8 +41,20 @@ export const CartProvider = ({ children }) => {
         });
     };
 
+    // Yeni eklenen clearCart fonksiyonu
+    const clearCart = () => {
+        setCartItems([]);
+    };
+
     return (
-        <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, increaseAmount, decreaseAmount }}>
+        <CartContext.Provider value={{
+            cartItems,
+            addToCart,
+            removeFromCart,
+            increaseAmount,
+            decreaseAmount,
+            clearCart
+        }}>
             {children}
         </CartContext.Provider>
     );

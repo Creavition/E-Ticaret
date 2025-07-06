@@ -1,135 +1,387 @@
+// screens/Login.js
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
+import {
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Animated,
+    Dimensions,
+    ActivityIndicator
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { findUser, setCurrentUser, getAllUsers } from '../utils/authStorage';
+import { LinearGradient } from 'expo-linear-gradient';
+import { findUser, setCurrentUser } from '../utils/authStorage';
+import { useLanguage } from '../contexts/LanguageContext';
+
+const { width, height } = Dimensions.get('window');
 
 export default function Login({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState({});
+    const { translations } = useLanguage();
+
+    // Animation değerleri
+    const [fadeAnim] = useState(new Animated.Value(0));
+    const [slideAnim] = useState(new Animated.Value(50));
+
+    React.useEffect(() => {
+        // Sayfa yüklendiğinde animasyon
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 800,
+                useNativeDriver: true,
+            })
+        ]).start();
+    }, []);
+
+    const validateForm = () => {
+        const newErrors = {};
+
+        if (!email.trim()) {
+            newErrors.email = translations.pleaseEnterEmailPassword;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            newErrors.email = 'Geçerli bir e-posta adresi girin';
+        }
+
+        if (!password.trim()) {
+            newErrors.password = translations.pleaseEnterEmailPassword;
+        } else if (password.length < 6) {
+            newErrors.password = translations.passwordTooShort;
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleLogin = async () => {
-        try {
-            if (!email || !password) {
-                Alert.alert("Warning", "Please enter email and password.");
-                return;
-            }
+        if (!validateForm()) return;
 
-            const matchedUser = await findUser(email, password);
+        setLoading(true);
+        try {
+            const matchedUser = await findUser(email.trim(), password);
 
             if (!matchedUser) {
-                Alert.alert("Login Failed", "Email or password is incorrect.");
+                Alert.alert(
+                    translations.loginFailed,
+                    translations.emailPasswordIncorrect,
+                    [{ text: translations.ok }]
+                );
                 return;
             }
 
             await setCurrentUser(matchedUser);
-            console.log("Login Successful:", matchedUser);
-            navigation.replace('HomeScreen');
+
+            // Başarılı giriş animasyonu
+            Animated.sequence([
+                Animated.timing(fadeAnim, {
+                    toValue: 0.5,
+                    duration: 200,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(fadeAnim, {
+                    toValue: 1,
+                    duration: 200,
+                    useNativeDriver: true,
+                })
+            ]).start();
+
+            setTimeout(() => {
+                navigation.replace('HomeScreen');
+            }, 300);
+
         } catch (err) {
             console.error("Login error:", err);
-            Alert.alert("Error", "Something went wrong.");
+            Alert.alert(
+                translations.error,
+                translations.somethingWentWrong,
+                [{ text: translations.ok }]
+            );
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.sloganText}>Your wardrobe is just one click away.</Text>
-            <TextInput
-                style={styles.box}
-                placeholder='Email address'
-                onChangeText={setEmail}
-                value={email}
-                autoCapitalize='none'
-            />
-            <View style={styles.passwordContainer}>
-                <TextInput
-                    style={styles.passwordInput}
-                    placeholder='Password'
-                    secureTextEntry={!showPassword}
-                    onChangeText={setPassword}
-                    value={password}
-                />
-                <TouchableOpacity
-                    style={styles.eyeIcon}
-                    onPress={() => setShowPassword(!showPassword)}
-                >
-                    <Ionicons
-                        name={showPassword ? 'eye-off' : 'eye'}
-                        size={24}
-                        color="gray"
-                    />
-                </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-                style={styles.button}
-                onPress={async () => { handleLogin(); console.log(await getAllUsers()); }}
+        <KeyboardAvoidingView
+            style={styles.container}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
+            <LinearGradient
+                colors={['#ff6b35', '#f7931e']}
+                style={styles.gradient}
             >
-                <Text style={styles.button_text}>Login</Text>
-            </TouchableOpacity>
-
-            <View style={{ flexDirection: 'row', marginTop: 20 }}>
-                <Text>Don't have an account?</Text>
-                <TouchableOpacity
-                    onPress={() => navigation.navigate('Register')}
+                <ScrollView
+                    contentContainerStyle={[styles.scrollContent, { minHeight: height }]}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    bounces={false}
+                    scrollEnabled={true}
                 >
-                    <Text style={{ marginLeft: 6, color: 'blue' }}>Register</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
+                    <Animated.View
+                        style={[
+                            styles.formContainer,
+                            {
+                                opacity: fadeAnim,
+                                transform: [{ translateY: slideAnim }]
+                            }
+                        ]}
+                    >
+                        {/* Logo/Icon */}
+                        <View style={styles.logoContainer}>
+                            <Ionicons name="storefront" size={80} color="#fff" />
+                        </View>
+
+                        {/* Welcome Text */}
+                        <Text style={styles.welcomeText}>{translations.welcomeBack}</Text>
+                        <Text style={styles.sloganText}>{translations.loginSlogan}</Text>
+
+                        {/* Form Card */}
+                        <View style={styles.formCard}>
+                            {/* Email Input */}
+                            <View style={styles.inputContainer}>
+                                <View style={[styles.inputWrapper, errors.email && styles.inputError]}>
+                                    <Ionicons name="mail" size={20} color="#666" style={styles.inputIcon} />
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder={translations.emailLabel}
+                                        value={email}
+                                        onChangeText={setEmail}
+                                        autoCapitalize="none"
+                                        keyboardType="email-address"
+                                        placeholderTextColor="#999"
+                                    />
+                                </View>
+                                {errors.email && (
+                                    <Text style={styles.errorText}>{errors.email}</Text>
+                                )}
+                            </View>
+
+                            {/* Password Input */}
+                            <View style={styles.inputContainer}>
+                                <View style={[styles.inputWrapper, errors.password && styles.inputError]}>
+                                    <Ionicons name="lock-closed" size={20} color="#666" style={styles.inputIcon} />
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder={translations.passwordLabel}
+                                        value={password}
+                                        onChangeText={setPassword}
+                                        secureTextEntry={!showPassword}
+                                        placeholderTextColor="#999"
+                                    />
+                                    <TouchableOpacity
+                                        style={styles.eyeIcon}
+                                        onPress={() => setShowPassword(!showPassword)}
+                                    >
+                                        <Ionicons
+                                            name={showPassword ? 'eye-off' : 'eye'}
+                                            size={20}
+                                            color="#666"
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                                {errors.password && (
+                                    <Text style={styles.errorText}>{errors.password}</Text>
+                                )}
+                            </View>
+
+                            {/* Login Button */}
+                            <TouchableOpacity
+                                style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+                                onPress={handleLogin}
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#fff" size="small" />
+                                ) : (
+                                    <Text style={styles.loginButtonText}>{translations.loginButton}</Text>
+                                )}
+                            </TouchableOpacity>
+
+                            {/* Forgot Password */}
+                            <TouchableOpacity style={styles.forgotPassword}>
+                                <Text style={styles.forgotPasswordText}>{translations.forgotPassword}</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Register Link */}
+                        <View style={styles.registerContainer}>
+                            <Text style={styles.registerText}>{translations.dontHaveAccount}</Text>
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate('Register')}
+                                style={styles.registerButton}
+                            >
+                                <Text style={styles.registerButtonText}>{translations.registerButton}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </Animated.View>
+                </ScrollView>
+            </LinearGradient>
+        </KeyboardAvoidingView>
     );
 }
-
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'white',
+    },
+    gradient: {
+        flex: 1,
+    },
+    scrollContent: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        paddingVertical: 20,
+    },
+    formContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+    },
+    logoContainer: {
+        marginBottom: 20,
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    box: {
-        height: 50,
-        width: 320,
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
         borderWidth: 2,
-        borderColor: "black",
-        borderRadius: 10,
-        marginBottom: 20,
-        paddingHorizontal: 10,
+        borderColor: 'rgba(255, 255, 255, 0.2)',
     },
-    button: {
-        height: 50,
-        width: 320,
-        borderRadius: 10,
-        backgroundColor: "orange",
-        justifyContent: "center",
-    },
-    button_text: {
-        color: "white",
-        textAlign: "center",
-        fontSize: 18,
+    welcomeText: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: '#fff',
+        marginBottom: 10,
+        textAlign: 'center',
     },
     sloganText: {
-        fontSize: 28,
-        color: '#1e1e2d',
+        fontSize: 16,
+        color: 'rgba(255, 255, 255, 0.8)',
         textAlign: 'center',
-        marginBottom: 20
+        marginBottom: 40,
+        paddingHorizontal: 20,
     },
-    passwordContainer: {
+    formCard: {
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: 20,
+        padding: 30,
+        width: '100%',
+        maxWidth: 400,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 10,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 15,
+        elevation: 8,
+    },
+    inputContainer: {
+        marginBottom: 20,
+    },
+    inputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
-        height: 50,
-        width: 320,
-        borderWidth: 2,
-        borderColor: "black",
-        borderRadius: 10,
-        marginBottom: 20,
-        paddingHorizontal: 10,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 12,
+        backgroundColor: '#f9f9f9',
+        paddingHorizontal: 15,
+        height: 55,
     },
-    passwordInput: {
+    inputError: {
+        borderColor: '#f44336',
+        backgroundColor: '#ffebee',
+    },
+    inputIcon: {
+        marginRight: 10,
+    },
+    input: {
         flex: 1,
-        height: '100%',
+        fontSize: 16,
+        color: '#333',
     },
     eyeIcon: {
         padding: 5,
+    },
+    errorText: {
+        color: '#f44336',
+        fontSize: 12,
+        marginTop: 5,
+        marginLeft: 5,
+    },
+    loginButton: {
+        backgroundColor: '#ff6b35',
+        height: 55,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 10,
+        shadowColor: '#ff6b35',
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    loginButtonDisabled: {
+        backgroundColor: '#ccc',
+        shadowOpacity: 0,
+        elevation: 0,
+    },
+    loginButtonText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    forgotPassword: {
+        alignItems: 'center',
+        marginTop: 15,
+    },
+    forgotPasswordText: {
+        color: '#ff6b35',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    registerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 30,
+    },
+    registerText: {
+        color: 'rgba(255, 255, 255, 0.8)',
+        fontSize: 16,
+    },
+    registerButton: {
+        marginLeft: 8,
+        paddingHorizontal: 15,
+        paddingVertical: 8,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 20,
+    },
+    registerButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });

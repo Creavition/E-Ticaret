@@ -7,13 +7,17 @@ import {
     TouchableOpacity,
     StyleSheet,
 } from "react-native";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useTheme } from "../contexts/ThemeContext"; // Bu satırı ekleyin
 
 export default function SelectableOptions({ onSelect }) {
     const navigation = useNavigation();
+    const { translations } = useLanguage();
+    const { theme, isDarkMode } = useTheme(); // Bu satırı ekleyin
     const [selected, setSelected] = useState(null);
     const [open, setOpen] = useState(false);
 
-    const options = ['Lowest Price', 'Highest Price'];
+    const options = [translations.lowestPrice, translations.highestPrice];
 
     const toggleDropdown = () => setOpen(!open);
 
@@ -25,38 +29,80 @@ export default function SelectableOptions({ onSelect }) {
 
     return (
         <View style={styles.container}>
-            <TouchableOpacity style={[styles.selector, { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }]} onPress={toggleDropdown}>
-                <Ionicons name="swap-vertical" size={20} color="#333" style={{ marginRight: 8 }} />
-                <Text style={styles.selectorText}>
-                    {selected || 'Sort By'}
+            <TouchableOpacity
+                style={[
+                    styles.selector,
+                    {
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        backgroundColor: isDarkMode ? theme.surface : '#fff',
+                        borderColor: isDarkMode ? theme.border : 'orange'
+                    }
+                ]}
+                onPress={toggleDropdown}
+            >
+                <Ionicons
+                    name="swap-vertical"
+                    size={20}
+                    color={isDarkMode ? theme.text : "#333"}
+                    style={{ marginRight: 8 }}
+                />
+                <Text style={[styles.selectorText, { color: isDarkMode ? theme.text : '#333' }]}>
+                    {selected || translations.sortBy}
                 </Text>
             </TouchableOpacity>
 
-
             {open && (
-                <View style={styles.dropdown}>
+                <View style={[
+                    styles.dropdown,
+                    {
+                        backgroundColor: isDarkMode ? theme.surface : '#fff',
+                        borderColor: isDarkMode ? theme.border : '#999'
+                    }
+                ]}>
                     {options.map((option, index) => (
                         <TouchableOpacity
                             key={index}
                             style={[
                                 styles.option,
-                                index !== options.length - 1 && styles.optionBorder
+                                { backgroundColor: isDarkMode ? theme.surface : '#fff' },
+                                index !== options.length - 1 && [
+                                    styles.optionBorder,
+                                    { borderBottomColor: isDarkMode ? theme.border : '#ddd' }
+                                ]
                             ]}
                             onPress={() => selectOption(option)}
                         >
-                            <Text style={styles.optionText}>{option}</Text>
+                            <Text style={[styles.optionText, { color: isDarkMode ? theme.text : '#333' }]}>
+                                {option}
+                            </Text>
                         </TouchableOpacity>
                     ))}
                 </View>
             )}
 
-            <TouchableOpacity style={[styles.selector, { flexDirection: "row" }]} onPress={() => { navigation.navigate("Filter") }}>
-                <Ionicons style={{ marginRight: 20 }} name="filter" size={24} color={"black"} />
-                <Text>Filter</Text>
+            <TouchableOpacity
+                style={[
+                    styles.selector,
+                    {
+                        flexDirection: "row",
+                        backgroundColor: isDarkMode ? theme.surface : '#fff',
+                        borderColor: isDarkMode ? theme.border : 'orange'
+                    }
+                ]}
+                onPress={() => { navigation.navigate("Filter") }}
+            >
+                <Ionicons
+                    style={{ marginRight: 20 }}
+                    name="filter"
+                    size={24}
+                    color={isDarkMode ? theme.text : "black"}
+                />
+                <Text style={{ color: isDarkMode ? theme.text : '#333' }}>
+                    {translations.filter}
+                </Text>
             </TouchableOpacity>
-
-
-
         </View>
     );
 }
@@ -84,9 +130,9 @@ const styles = StyleSheet.create({
         color: '#333',
     },
     dropdown: {
-        position: 'absolute',      // ✅ Sabitle
-        top: 45,                   // ✅ Butonun hemen altı
-        zIndex: 999,               // ✅ Üstte görünmesi için
+        position: 'absolute',
+        top: 45,
+        zIndex: 999,
         width: 160,
         backgroundColor: '#fff',
         borderColor: '#999',

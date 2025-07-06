@@ -4,10 +4,12 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { CartContext } from '../contexts/CartContext'; // Sepet context'i
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function ProductDetail({ route }) {
     const { product } = route.params;
     const { addToCart } = useContext(CartContext);
+    const { theme, isDarkMode } = useTheme();
     const navigation = useNavigation();
 
     // Ürünün tüm beden seçenekleri ve mevcut bedenler
@@ -35,12 +37,12 @@ export default function ProductDetail({ route }) {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: isDarkMode ? theme.background : '#fff' }]}>
             <Image source={{ uri: product.image }} style={styles.image} />
-            <Text style={styles.name}>{product.name}</Text>
-            <Text style={styles.price}>{product.price}</Text>
+            <Text style={[styles.name, { color: isDarkMode ? '#fff' : '#000' }]}>{product.name}</Text>
+            <Text style={[styles.price, { color: isDarkMode ? '#b3b3b3' : '#666' }]}>{product.price}</Text>
 
-            <Text style={styles.sizeTitle}>Size Options:</Text>
+            <Text style={[styles.sizeTitle, { color: isDarkMode ? '#fff' : '#000' }]}>Size Options:</Text>
             <View style={styles.sizeContainer}>
                 {allSizes.map((size) => {
                     const isAvailable = availableSizes.includes(size);
@@ -52,7 +54,9 @@ export default function ProductDetail({ route }) {
                             style={[
                                 styles.sizeBox,
                                 !isAvailable && styles.unavailableSizeBox,
-                                isSelected && isAvailable && styles.selectedSizeBox
+                                isSelected && isAvailable && styles.selectedSizeBox,
+                                { backgroundColor: isDarkMode ? (isAvailable ? '#444' : '#333') : (isAvailable ? '#f2f2f2' : '#f5f5f5') },
+                                { borderColor: isDarkMode ? (isAvailable ? '#555' : '#444') : 'black' }
                             ]}
                             onPress={() => isAvailable && setSelectedSize(size)}
                             disabled={!isAvailable}
@@ -60,12 +64,13 @@ export default function ProductDetail({ route }) {
                             <Text style={[
                                 styles.sizeText,
                                 isSelected && isAvailable && styles.selectedSizeText,
-                                !isAvailable && styles.unavailableSizeText
+                                !isAvailable && styles.unavailableSizeText,
+                                { color: isDarkMode ? (isAvailable ? '#fff' : '#888') : '#333' }
                             ]}>
                                 {size}
                             </Text>
                             {!isAvailable && (
-                                <Ionicons name="close" size={20} color="#666" style={styles.crossIcon} />
+                                <Ionicons name="close" size={20} color={isDarkMode ? '#b3b3b3' : '#666'} style={styles.crossIcon} />
                             )}
                         </TouchableOpacity>
                     );
@@ -89,10 +94,10 @@ export default function ProductDetail({ route }) {
             </TouchableOpacity>
 
             {isAddedToCart && (
-                <View style={styles.persistentCartContainer}>
+                <View style={[styles.persistentCartContainer, { backgroundColor: isDarkMode ? '#333' : '#fff', borderColor: isDarkMode ? '#444' : '#e0e0e0' }]}>
                     <View style={styles.addedIndicator}>
                         <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-                        <Text style={styles.addedText}>Product added to cart!</Text>
+                        <Text style={[styles.addedText, { color: isDarkMode ? '#4CAF50' : '#4CAF50' }]}>Product added to cart!</Text>
                     </View>
                     <TouchableOpacity style={styles.goToCartButton} onPress={handleGoToCart}>
                         <Ionicons name="cart" size={16} color="#fff" style={{ marginRight: 5 }} />
