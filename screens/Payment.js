@@ -24,7 +24,9 @@ export default function Payment() {
     }, 0);
   };
 
+  // Ödeme işlemi
   const handlePayment = async () => {
+    // Sepet boşluk kontrolü
     if (cartItems.length === 0) {
       Alert.alert(translations.error, 'Sepetiniz boş!');
       return;
@@ -56,9 +58,7 @@ export default function Payment() {
       // Sepeti temizle
       clearCart();
 
-      setIsProcessing(false);
-
-      // Başarı mesajı
+      // Başarı mesajı göster
       Alert.alert(
         translations.success,
         translations.paymentSuccessful,
@@ -77,67 +77,97 @@ export default function Payment() {
     } catch (error) {
       console.error('Payment error:', error);
       Alert.alert(translations.error, translations.paymentError);
+    } finally {
       setIsProcessing(false);
     }
   };
 
-  return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: isDarkMode ? theme.background : '#f8f9fa' }]}>
-      <View style={[styles.header, { backgroundColor: isDarkMode ? '#2d2d2d' : '#fff', borderBottomColor: isDarkMode ? '#444' : '#e0e0e0' }]}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color={isDarkMode ? '#fff' : '#333'} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: isDarkMode ? '#fff' : '#333' }]}>{translations.payment}</Text>
-        <View style={styles.placeholder} />
+  // Sipariş öğesi render fonksiyonu
+  const renderOrderItem = (item, index) => (
+    <View key={index} style={[styles.orderItem, { borderBottomColor: isDarkMode ? '#444' : '#f0f0f0' }]}>
+      <View style={styles.itemInfo}>
+        <Text style={[styles.itemName, { color: isDarkMode ? '#fff' : '#333' }]}>
+          {item.name}
+        </Text>
+        <Text style={[styles.itemDetails, { color: isDarkMode ? '#b3b3b3' : '#666' }]}>
+          {translations.size}: {item.size} | {translations.quantity}: {item.amount}
+        </Text>
       </View>
+      <Text style={[styles.itemPrice, { color: isDarkMode ? '#fff' : '#007BFF' }]}>
+        {(parseFloat(item.price.replace('₺', '').replace(',', '.')) * item.amount).toFixed(2)} ₺
+      </Text>
+    </View>
+  );
 
-      <Text style={[styles.sectionTitle, { color: isDarkMode ? '#fff' : '#333' }]}>{translations.paymentInformation}</Text>
+  return (
+    <ScrollView
+      contentContainerStyle={[
+        styles.container,
+        { backgroundColor: isDarkMode ? theme.background : '#f8f9fa' }
+      ]}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Kapatma Butonu */}
+      <TouchableOpacity
+        style={styles.closeButtonTopLeft}
+        onPress={() => navigation.goBack()}
+      >
+        <Ionicons name="close" size={24} color={isDarkMode ? '#fff' : '#333'} />
+      </TouchableOpacity>
+
+      {/* Başlık */}
+      <Text style={[styles.sectionTitle, { color: isDarkMode ? '#fff' : '#333' }]}>
+        {translations.paymentInformation}
+      </Text>
 
       {/* Kredi Kartı Komponenti */}
       <CreditCard />
 
       {/* Sipariş Özeti */}
-      <View style={[styles.orderSummary, { backgroundColor: isDarkMode ? '#333' : '#fff', borderColor: isDarkMode ? '#444' : '#e0e0e0' }]}>
-        <Text style={[styles.summaryTitle, { color: isDarkMode ? '#fff' : '#333' }]}>{translations.orderSummary}</Text>
+      <View style={[
+        styles.orderSummary,
+        {
+          backgroundColor: isDarkMode ? '#333' : '#fff',
+          borderColor: isDarkMode ? '#444' : '#e0e0e0'
+        }
+      ]}>
+        <Text style={[styles.summaryTitle, { color: isDarkMode ? '#fff' : '#333' }]}>
+          {translations.orderSummary}
+        </Text>
 
-        {cartItems.map((item, index) => (
-          <View key={index} style={[styles.orderItem, { borderBottomColor: isDarkMode ? '#444' : '#f0f0f0' }]}>
-            <View style={styles.itemInfo}>
-              <Text style={[styles.itemName, { color: isDarkMode ? '#fff' : '#333' }]}>{item.name}</Text>
-              <Text style={[styles.itemDetails, { color: isDarkMode ? '#b3b3b3' : '#666' }]}>
-                {translations.size}: {item.size} | {translations.quantity}: {item.amount}
-              </Text>
-            </View>
-            <Text style={[styles.itemPrice, { color: isDarkMode ? '#fff' : '#333' }]}>
-              {(parseFloat(item.price.replace('₺', '').replace(',', '.')) * item.amount).toFixed(2)} ₺
-            </Text>
-          </View>
-        ))}
+        {/* Sipariş Öğeleri */}
+        {cartItems.map(renderOrderItem)}
 
-        <View style={[styles.totalRow, { borderTopColor: isDarkMode ? '#444' : '#e0e0e0' }]}>
-          <Text style={[styles.totalLabel, { color: isDarkMode ? '#fff' : '#333' }]}>{translations.totalAmount}:</Text>
-          <Text style={styles.totalAmount}>{calculateTotal().toFixed(2)} ₺</Text>
+        {/* Toplam Tutar */}
+        <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 10 }}>
+          <Text style={[styles.totalLabel, { color: isDarkMode ? '#fff' : '#333' }]}>
+            {translations.totalAmount}:
+          </Text>
+          <Text style={[styles.totalAmount, { color: isDarkMode ? '#fff' : '#007BFF' }]}>
+            {calculateTotal().toFixed(2)} ₺
+          </Text>
         </View>
       </View>
 
       {/* Ödeme Butonu */}
       <View style={styles.paymentButtonContainer}>
         <TouchableOpacity
-          style={[styles.paymentButton, isProcessing && styles.processingButton]}
+          style={[
+            styles.paymentButton,
+            isProcessing && styles.processingButton
+          ]}
           onPress={handlePayment}
           disabled={isProcessing}
+          activeOpacity={0.8}
         >
           {isProcessing ? (
             <>
-              <Ionicons name="time" size={20} color="#fff" style={{ marginRight: 8 }} />
+              <Ionicons name="time" size={20} color="#fff" style={styles.buttonIcon} />
               <Text style={styles.buttonText}>{translations.processing}</Text>
             </>
           ) : (
             <>
-              <Ionicons name="card" size={20} color="#fff" style={{ marginRight: 8 }} />
+              <Ionicons name="card" size={20} color="#fff" style={styles.buttonIcon} />
               <Text style={styles.buttonText}>{translations.payNow}</Text>
             </>
           )}
@@ -157,41 +187,24 @@ export default function Payment() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#f8f9fa',
-    paddingBottom: 20,
+    flexGrow: 1,
+    paddingBottom: 10,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  backButton: {
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 1,
     padding: 8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  placeholder: {
-    width: 40,
+    borderRadius: 20,
   },
   sectionTitle: {
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 20,
-    marginTop: 20,
     textAlign: 'center',
-    color: '#333',
   },
   orderSummary: {
-    backgroundColor: '#fff',
     margin: 20,
     borderRadius: 12,
     padding: 20,
@@ -205,33 +218,30 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#333',
   },
   orderItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   itemInfo: {
     flex: 1,
+    marginRight: 10,
   },
   itemName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
+    marginBottom: 2,
   },
   itemDetails: {
     fontSize: 14,
-    color: '#666',
-    marginTop: 2,
+    lineHeight: 18,
   },
   itemPrice: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
   },
   totalRow: {
     flexDirection: 'row',
@@ -240,27 +250,25 @@ const styles = StyleSheet.create({
     paddingTop: 15,
     marginTop: 10,
     borderTopWidth: 2,
-    borderTopColor: '#e0e0e0',
   },
   totalLabel: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
   },
   totalAmount: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#007BFF',
   },
   paymentButtonContainer: {
     alignItems: 'center',
     marginTop: 20,
+    marginHorizontal: 20,
   },
   paymentButton: {
-    backgroundColor: 'orange',
-    width: 250,
-    height: 50,
-    borderRadius: 25,
+    backgroundColor: '#FF6B35',
+    width: '100%',
+    height: 55,
+    borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -272,6 +280,9 @@ const styles = StyleSheet.create({
   },
   processingButton: {
     backgroundColor: '#ccc',
+  },
+  buttonIcon: {
+    marginRight: 8,
   },
   buttonText: {
     color: '#fff',
@@ -287,8 +298,8 @@ const styles = StyleSheet.create({
   },
   securityText: {
     fontSize: 14,
-    color: '#666',
     marginLeft: 8,
     textAlign: 'center',
+    lineHeight: 20,
   },
 });

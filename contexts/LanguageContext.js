@@ -9,6 +9,7 @@ const translations = {
         // Account Screen
         account: 'Account',
         loading: 'Loading...',
+        welcome: "Welcome",
         personalInfo: 'Personal Information',
         fullName: 'Full Name',
         email: 'Email',
@@ -25,7 +26,7 @@ const translations = {
 
         // Order History
         noOrders: 'No Orders Yet',
-        noOrdersMessage: 'You haven\'t placed any orders yet. Start shopping to see your order history here.',
+        noOrdersMessage: 'You haven\'t placed any orders yet.',
         items: 'items',
         viewDetails: 'View Details',
         orderDetails: 'Order Details',
@@ -77,12 +78,9 @@ const translations = {
         payment: 'Payment',
         login: 'Login',
         register: 'Register',
-        forgotPassword: 'Forgot Password?',
         rememberMe: 'Remember Me',
         alreadyHaveAccount: 'Already have an account?',
         dontHaveAccount: 'Don\'t have an account?',
-        welcome: 'Welcome',
-        welcomeBack: 'Welcome Back',
         getStarted: 'Get Started',
         continueWithEmail: 'Continue with Email',
         or: 'or',
@@ -137,6 +135,8 @@ const translations = {
         highestPrice: 'Highest Price',
         flashSale: 'FLASH SALE',
         bestSelling: 'BEST SELLING',
+        bestSellingLine1: 'BEST',        // İlk satır için
+        bestSellingLine2: 'SELLING',     // İkinci satır için
         fastDelivery: 'Fast Delivery',
         bestSeller: 'BestSeller',
 
@@ -161,6 +161,10 @@ const translations = {
         shoes: 'Shoes',
         tshirt: 'T-Shirt',
 
+        //Favorites
+        favoritesText: "You don't have any favorite products yet.",
+        favoritesProduct: "Product",
+
         // Payment
         paymentInformation: 'Payment Information',
         orderSummary: 'Order Summary',
@@ -183,6 +187,7 @@ const translations = {
         // Account Screen
         account: 'Hesap',
         loading: 'Yükleniyor...',
+        welcome: "Hoşgeldin",
         personalInfo: 'Kişisel Bilgiler',
         fullName: 'Ad Soyad',
         email: 'E-posta',
@@ -199,7 +204,7 @@ const translations = {
 
         // Order History
         noOrders: 'Henüz Sipariş Yok',
-        noOrdersMessage: 'Henüz herhangi bir sipariş vermediniz. Alışverişe başlayın ve sipariş geçmişinizi burada görün.',
+        noOrdersMessage: 'Henüz herhangi bir sipariş vermediniz.',
         items: 'ürün',
         viewDetails: 'Detayları Gör',
         orderDetails: 'Sipariş Detayları',
@@ -251,12 +256,9 @@ const translations = {
         payment: 'Ödeme',
         login: 'Giriş Yap',
         register: 'Kayıt Ol',
-        forgotPassword: 'Şifremi Unuttum?',
         rememberMe: 'Beni Hatırla',
         alreadyHaveAccount: 'Zaten hesabınız var mı?',
         dontHaveAccount: 'Hesabınız yok mu?',
-        welcome: 'Hoş Geldiniz',
-        welcomeBack: 'Tekrar Hoş Geldiniz',
         getStarted: 'Başlayın',
         continueWithEmail: 'E-posta ile Devam Et',
         or: 'veya',
@@ -311,6 +313,8 @@ const translations = {
         highestPrice: 'En Yüksek Fiyat',
         flashSale: 'FLASH İNDİRİM',
         bestSelling: 'EN ÇOK SATAN',
+        bestSellingLine1: 'EN ÇOK',      // İlk satır için
+        bestSellingLine2: 'SATAN',       // İkinci satır için
         fastDelivery: 'Hızlı Teslimat',
         bestSeller: 'En Çok Satan',
 
@@ -335,6 +339,10 @@ const translations = {
         shoes: 'Ayakkabı',
         tshirt: 'Tişört',
 
+        //Favorites
+        favoritesText: "Henüz favori ürününüz yok",
+        favoritesProduct: "Ürün",
+
         // Payment
         paymentInformation: 'Ödeme Bilgileri',
         orderSummary: 'Sipariş Özeti',
@@ -356,7 +364,7 @@ const translations = {
 };
 
 export const LanguageProvider = ({ children }) => {
-    const [language, setLanguage] = useState('en'); // Varsayılan dil İngilizce
+    const [language, setLanguage] = useState('tr');
 
     useEffect(() => {
         loadLanguage();

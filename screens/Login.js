@@ -12,7 +12,10 @@ import {
     ScrollView,
     Animated,
     Dimensions,
-    ActivityIndicator
+    ActivityIndicator,
+    TouchableWithoutFeedback,
+    Keyboard,
+    Image
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -69,6 +72,9 @@ export default function Login({ navigation }) {
     };
 
     const handleLogin = async () => {
+        // Klavyeyi kapat
+        Keyboard.dismiss();
+
         if (!validateForm()) return;
 
         setLoading(true);
@@ -116,123 +122,133 @@ export default function Login({ navigation }) {
         }
     };
 
+    // Klavyeyi kapatma fonksiyonu
+    const dismissKeyboard = () => {
+        Keyboard.dismiss();
+    };
+
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-        >
-            <LinearGradient
-                colors={['#ff6b35', '#f7931e']}
-                style={styles.gradient}
-            >
-                <ScrollView
-                    contentContainerStyle={[styles.scrollContent, { minHeight: height }]}
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
-                    bounces={false}
-                    scrollEnabled={true}
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
+            <View style={styles.container}>
+                <LinearGradient
+                    colors={['#ff6b35', '#f7931e']}
+                    style={styles.gradient}
                 >
-                    <Animated.View
-                        style={[
-                            styles.formContainer,
-                            {
-                                opacity: fadeAnim,
-                                transform: [{ translateY: slideAnim }]
-                            }
-                        ]}
+                    <KeyboardAvoidingView
+                        style={styles.keyboardAvoidingView}
+                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                        keyboardVerticalOffset={0}
                     >
-                        {/* Logo/Icon */}
-                        <View style={styles.logoContainer}>
-                            <Ionicons name="storefront" size={80} color="#fff" />
-                        </View>
-
-                        {/* Welcome Text */}
-                        <Text style={styles.welcomeText}>{translations.welcomeBack}</Text>
-                        <Text style={styles.sloganText}>{translations.loginSlogan}</Text>
-
-                        {/* Form Card */}
-                        <View style={styles.formCard}>
-                            {/* Email Input */}
-                            <View style={styles.inputContainer}>
-                                <View style={[styles.inputWrapper, errors.email && styles.inputError]}>
-                                    <Ionicons name="mail" size={20} color="#666" style={styles.inputIcon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={translations.emailLabel}
-                                        value={email}
-                                        onChangeText={setEmail}
-                                        autoCapitalize="none"
-                                        keyboardType="email-address"
-                                        placeholderTextColor="#999"
-                                    />
+                        <ScrollView
+                            contentContainerStyle={styles.scrollContent}
+                            showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                            bounces={false}
+                            automaticallyAdjustKeyboardInsets={true}
+                            contentInsetAdjustmentBehavior="automatic"
+                        >
+                            <Animated.View
+                                style={[
+                                    styles.formContainer,
+                                    {
+                                        opacity: fadeAnim,
+                                        transform: [{ translateY: slideAnim }]
+                                    }
+                                ]}
+                            >
+                                {/* Logo/Icon */}
+                                <View style={styles.logoContainer}>
+                                    <Image style={{ width: 150, height: 150 }} source={require("../assets/images/KombinSepeti-logo.png")} />
                                 </View>
-                                {errors.email && (
-                                    <Text style={styles.errorText}>{errors.email}</Text>
-                                )}
-                            </View>
 
-                            {/* Password Input */}
-                            <View style={styles.inputContainer}>
-                                <View style={[styles.inputWrapper, errors.password && styles.inputError]}>
-                                    <Ionicons name="lock-closed" size={20} color="#666" style={styles.inputIcon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={translations.passwordLabel}
-                                        value={password}
-                                        onChangeText={setPassword}
-                                        secureTextEntry={!showPassword}
-                                        placeholderTextColor="#999"
-                                    />
+                                {/* Welcome Slogan */}
+                                <Text style={styles.sloganText}>{translations.loginSlogan}</Text>
+
+                                {/* Form Card */}
+                                <View style={styles.formCard}>
+                                    {/* Email Input */}
+                                    <View style={styles.inputContainer}>
+                                        <View style={[styles.inputWrapper, errors.email && styles.inputError]}>
+                                            <Ionicons name="mail" size={20} color="#666" style={styles.inputIcon} />
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholder={translations.emailLabel}
+                                                value={email}
+                                                onChangeText={setEmail}
+                                                autoCapitalize="none"
+                                                keyboardType="email-address"
+                                                placeholderTextColor="#999"
+                                                returnKeyType="next"
+                                                blurOnSubmit={false}
+                                            />
+                                        </View>
+                                        {errors.email && (
+                                            <Text style={styles.errorText}>{errors.email}</Text>
+                                        )}
+                                    </View>
+
+                                    {/* Password Input */}
+                                    <View style={styles.inputContainer}>
+                                        <View style={[styles.inputWrapper, errors.password && styles.inputError]}>
+                                            <Ionicons name="lock-closed" size={20} color="#666" style={styles.inputIcon} />
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholder={translations.passwordLabel}
+                                                value={password}
+                                                onChangeText={setPassword}
+                                                secureTextEntry={!showPassword}
+                                                placeholderTextColor="#999"
+                                                returnKeyType="done"
+                                                onSubmitEditing={handleLogin}
+                                            />
+                                            <TouchableOpacity
+                                                style={styles.eyeIcon}
+                                                onPress={() => setShowPassword(!showPassword)}
+                                            >
+                                                <Ionicons
+                                                    name={showPassword ? 'eye-off' : 'eye'}
+                                                    size={20}
+                                                    color="#666"
+                                                />
+                                            </TouchableOpacity>
+                                        </View>
+                                        {errors.password && (
+                                            <Text style={styles.errorText}>{errors.password}</Text>
+                                        )}
+                                    </View>
+
+                                    {/* Login Button */}
                                     <TouchableOpacity
-                                        style={styles.eyeIcon}
-                                        onPress={() => setShowPassword(!showPassword)}
+                                        style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+                                        onPress={handleLogin}
+                                        disabled={loading}
                                     >
-                                        <Ionicons
-                                            name={showPassword ? 'eye-off' : 'eye'}
-                                            size={20}
-                                            color="#666"
-                                        />
+                                        {loading ? (
+                                            <ActivityIndicator color="#fff" size="small" />
+                                        ) : (
+                                            <Text style={styles.loginButtonText}>{translations.loginButton}</Text>
+                                        )}
+                                    </TouchableOpacity>
+
+
+                                </View>
+
+                                {/* Register Link */}
+                                <View style={styles.registerContainer}>
+                                    <Text style={styles.registerText}>{translations.dontHaveAccount}</Text>
+                                    <TouchableOpacity
+                                        onPress={() => navigation.navigate('Register')}
+                                        style={styles.registerButton}
+                                    >
+                                        <Text style={styles.registerButtonText}>{translations.registerButton}</Text>
                                     </TouchableOpacity>
                                 </View>
-                                {errors.password && (
-                                    <Text style={styles.errorText}>{errors.password}</Text>
-                                )}
-                            </View>
-
-                            {/* Login Button */}
-                            <TouchableOpacity
-                                style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-                                onPress={handleLogin}
-                                disabled={loading}
-                            >
-                                {loading ? (
-                                    <ActivityIndicator color="#fff" size="small" />
-                                ) : (
-                                    <Text style={styles.loginButtonText}>{translations.loginButton}</Text>
-                                )}
-                            </TouchableOpacity>
-
-                            {/* Forgot Password */}
-                            <TouchableOpacity style={styles.forgotPassword}>
-                                <Text style={styles.forgotPasswordText}>{translations.forgotPassword}</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* Register Link */}
-                        <View style={styles.registerContainer}>
-                            <Text style={styles.registerText}>{translations.dontHaveAccount}</Text>
-                            <TouchableOpacity
-                                onPress={() => navigation.navigate('Register')}
-                                style={styles.registerButton}
-                            >
-                                <Text style={styles.registerButtonText}>{translations.registerButton}</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </Animated.View>
-                </ScrollView>
-            </LinearGradient>
-        </KeyboardAvoidingView>
+                            </Animated.View>
+                        </ScrollView>
+                    </KeyboardAvoidingView>
+                </LinearGradient>
+            </View>
+        </TouchableWithoutFeedback>
     );
 }
 
@@ -243,9 +259,13 @@ const styles = StyleSheet.create({
     gradient: {
         flex: 1,
     },
+    keyboardAvoidingView: {
+        flex: 1,
+    },
     scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
+        minHeight: height,
         paddingVertical: 20,
     },
     formContainer: {
@@ -253,16 +273,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 20,
+        minHeight: height - 40,
     },
     logoContainer: {
         marginBottom: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        borderWidth: 2,
+        width: 200,
+        height: 200,
+        borderRadius: 100,
+        backgroundColor: 'rgba(216, 173, 190, 0.1)',
+        borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.2)',
     },
     welcomeText: {
@@ -273,7 +294,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     sloganText: {
-        fontSize: 16,
+        fontSize: 20,
         color: 'rgba(255, 255, 255, 0.8)',
         textAlign: 'center',
         marginBottom: 40,

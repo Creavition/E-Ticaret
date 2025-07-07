@@ -12,7 +12,9 @@ import {
     ScrollView,
     Animated,
     Dimensions,
-    ActivityIndicator
+    ActivityIndicator,
+    TouchableWithoutFeedback,
+    Keyboard
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -84,6 +86,9 @@ export default function Register({ navigation }) {
     };
 
     const handleRegister = async () => {
+        // Klavyeyi kapat
+        Keyboard.dismiss();
+
         if (!validateForm()) return;
 
         setLoading(true);
@@ -132,184 +137,204 @@ export default function Register({ navigation }) {
         }
     };
 
+    // Klavyeyi kapatma fonksiyonu
+    const dismissKeyboard = () => {
+        Keyboard.dismiss();
+    };
+
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-            <LinearGradient
-                colors={['#f7931e', '#ff6b35']}
-                style={styles.gradient}
-            >
-                <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={false}
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
+            <View style={styles.container}>
+                <LinearGradient
+                    colors={['#f7931e', '#ff6b35']}
+                    style={styles.gradient}
                 >
-                    <Animated.View
-                        style={[
-                            styles.formContainer,
-                            {
-                                opacity: fadeAnim,
-                                transform: [{ translateY: slideAnim }]
-                            }
-                        ]}
+                    <KeyboardAvoidingView
+                        style={styles.keyboardAvoidingView}
+                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                        keyboardVerticalOffset={0}
                     >
-                        {/* Logo/Icon */}
-                        <View style={styles.logoContainer}>
-                            <Ionicons name="person-add" size={80} color="#fff" />
-                        </View>
-
-                        {/* Welcome Text */}
-                        <Text style={styles.welcomeText}>{translations.welcome}</Text>
-                        <Text style={styles.sloganText}>{translations.registerSlogan}</Text>
-
-                        {/* Form Card */}
-                        <View style={styles.formCard}>
-                            {/* Name Input */}
-                            <View style={styles.inputContainer}>
-                                <View style={[styles.inputWrapper, errors.name && styles.inputError]}>
-                                    <Ionicons name="person" size={20} color="#666" style={styles.inputIcon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={translations.nameLabel}
-                                        value={name}
-                                        onChangeText={setName}
-                                        autoCapitalize="words"
-                                        placeholderTextColor="#999"
-                                    />
+                        <ScrollView
+                            contentContainerStyle={styles.scrollContent}
+                            showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                            bounces={false}
+                            automaticallyAdjustKeyboardInsets={true}
+                            contentInsetAdjustmentBehavior="automatic"
+                        >
+                            <Animated.View
+                                style={[
+                                    styles.formContainer,
+                                    {
+                                        opacity: fadeAnim,
+                                        transform: [{ translateY: slideAnim }]
+                                    }
+                                ]}
+                            >
+                                {/* Logo/Icon */}
+                                <View style={styles.logoContainer}>
+                                    <Ionicons name="person-add" size={80} color="#fff" />
                                 </View>
-                                {errors.name && (
-                                    <Text style={styles.errorText}>{errors.name}</Text>
-                                )}
-                            </View>
 
-                            {/* Email Input */}
-                            <View style={styles.inputContainer}>
-                                <View style={[styles.inputWrapper, errors.email && styles.inputError]}>
-                                    <Ionicons name="mail" size={20} color="#666" style={styles.inputIcon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={translations.emailLabel}
-                                        value={email}
-                                        onChangeText={setEmail}
-                                        autoCapitalize="none"
-                                        keyboardType="email-address"
-                                        placeholderTextColor="#999"
-                                    />
-                                </View>
-                                {errors.email && (
-                                    <Text style={styles.errorText}>{errors.email}</Text>
-                                )}
-                            </View>
 
-                            {/* Password Input */}
-                            <View style={styles.inputContainer}>
-                                <View style={[styles.inputWrapper, errors.password && styles.inputError]}>
-                                    <Ionicons name="lock-closed" size={20} color="#666" style={styles.inputIcon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={translations.passwordLabel}
-                                        value={password}
-                                        onChangeText={setPassword}
-                                        secureTextEntry={!showPassword}
-                                        placeholderTextColor="#999"
-                                    />
+
+                                {/* Form Card */}
+                                <View style={styles.formCard}>
+                                    {/* Name Input */}
+                                    <View style={styles.inputContainer}>
+                                        <View style={[styles.inputWrapper, errors.name && styles.inputError]}>
+                                            <Ionicons name="person" size={20} color="#666" style={styles.inputIcon} />
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholder={translations.nameLabel}
+                                                value={name}
+                                                onChangeText={setName}
+                                                autoCapitalize="words"
+                                                placeholderTextColor="#999"
+                                                returnKeyType="next"
+                                                blurOnSubmit={false}
+                                            />
+                                        </View>
+                                        {errors.name && (
+                                            <Text style={styles.errorText}>{errors.name}</Text>
+                                        )}
+                                    </View>
+
+                                    {/* Email Input */}
+                                    <View style={styles.inputContainer}>
+                                        <View style={[styles.inputWrapper, errors.email && styles.inputError]}>
+                                            <Ionicons name="mail" size={20} color="#666" style={styles.inputIcon} />
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholder={translations.emailLabel}
+                                                value={email}
+                                                onChangeText={setEmail}
+                                                autoCapitalize="none"
+                                                keyboardType="email-address"
+                                                placeholderTextColor="#999"
+                                                returnKeyType="next"
+                                                blurOnSubmit={false}
+                                            />
+                                        </View>
+                                        {errors.email && (
+                                            <Text style={styles.errorText}>{errors.email}</Text>
+                                        )}
+                                    </View>
+
+                                    {/* Password Input */}
+                                    <View style={styles.inputContainer}>
+                                        <View style={[styles.inputWrapper, errors.password && styles.inputError]}>
+                                            <Ionicons name="lock-closed" size={20} color="#666" style={styles.inputIcon} />
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholder={translations.passwordLabel}
+                                                value={password}
+                                                onChangeText={setPassword}
+                                                secureTextEntry={!showPassword}
+                                                placeholderTextColor="#999"
+                                                returnKeyType="next"
+                                                blurOnSubmit={false}
+                                            />
+                                            <TouchableOpacity
+                                                style={styles.eyeIcon}
+                                                onPress={() => setShowPassword(!showPassword)}
+                                            >
+                                                <Ionicons
+                                                    name={showPassword ? 'eye-off' : 'eye'}
+                                                    size={20}
+                                                    color="#666"
+                                                />
+                                            </TouchableOpacity>
+                                        </View>
+                                        {errors.password && (
+                                            <Text style={styles.errorText}>{errors.password}</Text>
+                                        )}
+                                    </View>
+
+                                    {/* Confirm Password Input */}
+                                    <View style={styles.inputContainer}>
+                                        <View style={[styles.inputWrapper, errors.confirmPassword && styles.inputError]}>
+                                            <Ionicons name="lock-closed" size={20} color="#666" style={styles.inputIcon} />
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholder={translations.confirmPasswordLabel}
+                                                value={confirmPassword}
+                                                onChangeText={setConfirmPassword}
+                                                secureTextEntry={!showConfirmPassword}
+                                                placeholderTextColor="#999"
+                                                returnKeyType="done"
+                                                onSubmitEditing={handleRegister}
+                                            />
+                                            <TouchableOpacity
+                                                style={styles.eyeIcon}
+                                                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            >
+                                                <Ionicons
+                                                    name={showConfirmPassword ? 'eye-off' : 'eye'}
+                                                    size={20}
+                                                    color="#666"
+                                                />
+                                            </TouchableOpacity>
+                                        </View>
+                                        {errors.confirmPassword && (
+                                            <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+                                        )}
+                                    </View>
+
+                                    {/* Password Requirements */}
+                                    <View style={styles.requirementsContainer}>
+                                        <View style={styles.requirementItem}>
+                                            <Ionicons
+                                                name={password.length >= 6 ? 'checkmark-circle' : 'close-circle'}
+                                                size={16}
+                                                color={password.length >= 6 ? '#4CAF50' : '#f44336'}
+                                            />
+                                            <Text style={[styles.requirementText, { color: password.length >= 6 ? '#4CAF50' : '#f44336' }]}>
+                                                {translations.atLeast6Characters}
+                                            </Text>
+                                        </View>
+                                        <View style={styles.requirementItem}>
+                                            <Ionicons
+                                                name={password === confirmPassword && password.length > 0 ? 'checkmark-circle' : 'close-circle'}
+                                                size={16}
+                                                color={password === confirmPassword && password.length > 0 ? '#4CAF50' : '#f44336'}
+                                            />
+                                            <Text style={[styles.requirementText, { color: password === confirmPassword && password.length > 0 ? '#4CAF50' : '#f44336' }]}>
+                                                {translations.passwordsMatch}
+                                            </Text>
+                                        </View>
+                                    </View>
+
+                                    {/* Register Button */}
                                     <TouchableOpacity
-                                        style={styles.eyeIcon}
-                                        onPress={() => setShowPassword(!showPassword)}
+                                        style={[styles.registerButton, loading && styles.registerButtonDisabled]}
+                                        onPress={handleRegister}
+                                        disabled={loading}
                                     >
-                                        <Ionicons
-                                            name={showPassword ? 'eye-off' : 'eye'}
-                                            size={20}
-                                            color="#666"
-                                        />
+                                        {loading ? (
+                                            <ActivityIndicator color="#fff" size="small" />
+                                        ) : (
+                                            <Text style={styles.registerButtonText}>{translations.registerButton}</Text>
+                                        )}
                                     </TouchableOpacity>
                                 </View>
-                                {errors.password && (
-                                    <Text style={styles.errorText}>{errors.password}</Text>
-                                )}
-                            </View>
 
-                            {/* Confirm Password Input */}
-                            <View style={styles.inputContainer}>
-                                <View style={[styles.inputWrapper, errors.confirmPassword && styles.inputError]}>
-                                    <Ionicons name="lock-closed" size={20} color="#666" style={styles.inputIcon} />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={translations.confirmPasswordLabel}
-                                        value={confirmPassword}
-                                        onChangeText={setConfirmPassword}
-                                        secureTextEntry={!showConfirmPassword}
-                                        placeholderTextColor="#999"
-                                    />
+                                {/* Login Link */}
+                                <View style={styles.loginContainer}>
+                                    <Text style={styles.loginText}>{translations.alreadyHaveAccount}</Text>
                                     <TouchableOpacity
-                                        style={styles.eyeIcon}
-                                        onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        onPress={() => navigation.navigate('Login')}
+                                        style={styles.loginButton}
                                     >
-                                        <Ionicons
-                                            name={showConfirmPassword ? 'eye-off' : 'eye'}
-                                            size={20}
-                                            color="#666"
-                                        />
+                                        <Text style={styles.loginButtonText}>{translations.loginButton}</Text>
                                     </TouchableOpacity>
                                 </View>
-                                {errors.confirmPassword && (
-                                    <Text style={styles.errorText}>{errors.confirmPassword}</Text>
-                                )}
-                            </View>
-
-                            {/* Password Requirements */}
-                            <View style={styles.requirementsContainer}>
-                                <View style={styles.requirementItem}>
-                                    <Ionicons
-                                        name={password.length >= 6 ? 'checkmark-circle' : 'close-circle'}
-                                        size={16}
-                                        color={password.length >= 6 ? '#4CAF50' : '#f44336'}
-                                    />
-                                    <Text style={[styles.requirementText, { color: password.length >= 6 ? '#4CAF50' : '#f44336' }]}>
-                                        {translations.atLeast6Characters}
-                                    </Text>
-                                </View>
-                                <View style={styles.requirementItem}>
-                                    <Ionicons
-                                        name={password === confirmPassword && password.length > 0 ? 'checkmark-circle' : 'close-circle'}
-                                        size={16}
-                                        color={password === confirmPassword && password.length > 0 ? '#4CAF50' : '#f44336'}
-                                    />
-                                    <Text style={[styles.requirementText, { color: password === confirmPassword && password.length > 0 ? '#4CAF50' : '#f44336' }]}>
-                                        {translations.passwordsMatch}
-                                    </Text>
-                                </View>
-                            </View>
-
-                            {/* Register Button */}
-                            <TouchableOpacity
-                                style={[styles.registerButton, loading && styles.registerButtonDisabled]}
-                                onPress={handleRegister}
-                                disabled={loading}
-                            >
-                                {loading ? (
-                                    <ActivityIndicator color="#fff" size="small" />
-                                ) : (
-                                    <Text style={styles.registerButtonText}>{translations.registerButton}</Text>
-                                )}
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* Login Link */}
-                        <View style={styles.loginContainer}>
-                            <Text style={styles.loginText}>{translations.alreadyHaveAccount}</Text>
-                            <TouchableOpacity
-                                onPress={() => navigation.navigate('Login')}
-                                style={styles.loginButton}
-                            >
-                                <Text style={styles.loginButtonText}>{translations.loginButton}</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </Animated.View>
-                </ScrollView>
-            </LinearGradient>
-        </KeyboardAvoidingView>
+                            </Animated.View>
+                        </ScrollView>
+                    </KeyboardAvoidingView>
+                </LinearGradient>
+            </View>
+        </TouchableWithoutFeedback>
     );
 }
 
@@ -320,9 +345,13 @@ const styles = StyleSheet.create({
     gradient: {
         flex: 1,
     },
+    keyboardAvoidingView: {
+        flex: 1,
+    },
     scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
+        minHeight: height,
         paddingVertical: 20,
     },
     formContainer: {
@@ -330,9 +359,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 20,
+        minHeight: height - 40,
     },
     logoContainer: {
-        marginBottom: 20,
+        marginBottom: 30,
         alignItems: 'center',
         justifyContent: 'center',
         width: 120,
@@ -372,7 +402,7 @@ const styles = StyleSheet.create({
         elevation: 8,
     },
     inputContainer: {
-        marginBottom: 20,
+        marginBottom: 20
     },
     inputWrapper: {
         flexDirection: 'row',
@@ -423,7 +453,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 10,
+
         shadowColor: '#f7931e',
         shadowOffset: {
             width: 0,
@@ -446,7 +476,7 @@ const styles = StyleSheet.create({
     loginContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 30,
+        marginTop: 10,
     },
     loginText: {
         color: 'rgba(255, 255, 255, 0.8)',

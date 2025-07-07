@@ -1,3 +1,4 @@
+// Cart.js - Size debugging ile
 import { useContext, useMemo, useCallback, useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, StatusBar } from 'react-native';
 import { CartContext } from '../contexts/CartContext';
@@ -8,12 +9,25 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function Cart() {
-  const { cartItems, removeFromCart, increaseAmount, decreaseAmount } = useContext(CartContext);
+  const { cartItems, removeFromCart, increaseAmount, decreaseAmount, updateAllCartItemsLanguage } = useContext(CartContext);
   const navigation = useNavigation();
   const { translations, language } = useLanguage();
   const { theme, isDarkMode } = useTheme();
   const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Debug için cartItems'ı console'a yazdır
+  useEffect(() => {
+    console.log('Current cartItems:', cartItems);
+    cartItems.forEach((item, index) => {
+      console.log(`Item ${index}:`, {
+        id: item.id,
+        name: item.name,
+        size: item.size,
+        amount: item.amount
+      });
+    });
+  }, [cartItems]);
 
   // Ürünleri yükle
   const loadProducts = useCallback(async () => {
@@ -32,6 +46,13 @@ export default function Cart() {
   useEffect(() => {
     loadProducts();
   }, [loadProducts, language]);
+
+  // Dil değiştiğinde sepetteki ürün isimlerini güncelle
+  useEffect(() => {
+    if (allProducts.length > 0 && cartItems.length > 0 && updateAllCartItemsLanguage) {
+      updateAllCartItemsLanguage(allProducts);
+    }
+  }, [allProducts, language]);
 
   const parsePrice = (priceStr) => parseFloat(priceStr.replace('₺', '').replace(',', '.'));
 
@@ -56,12 +77,10 @@ export default function Cart() {
   const fastDeliveryProducts = useMemo(() => {
     const fastDeliveryIds = new Set();
     allProducts.forEach((product, index) => {
-      // Ürün ID'sine göre sabit bir hash oluştur
       const hash = product.id.split('').reduce((a, b) => {
         a = ((a << 5) - a) + b.charCodeAt(0);
         return a & a;
       }, 0);
-      // Hash'e göre %30 şans ver
       if (Math.abs(hash) % 10 < 3) {
         fastDeliveryIds.add(product.id);
       }
@@ -73,44 +92,55 @@ export default function Cart() {
     const isFlashSale = flashSaleProducts.has(item.id);
     const hasFastDelivery = fastDeliveryProducts.has(item.id);
 
+    // Debug için item bilgilerini yazdır
+    console.log(`Rendering item ${index}:`, {
+      size: item.size,
+      sizeType: typeof item.size,
+      hasSize: !!item.size
+    });
+
     return (
       <View style={[styles.itemContainer, { backgroundColor: isDarkMode ? '#333' : '#fff' }]}>
-        {/* Flash Sale or Best Selling Badge */}
-        {isFlashSale ? (
-          <View style={styles.flashSaleBadge}>
-            <Text style={styles.flashSaleText}>{translations.flashSale.split(' ')[0]}</Text>
-            <Text style={styles.flashSaleText}>{translations.flashSale.split(' ')[1]}</Text>
-          </View>
-        ) : (
-          <View style={styles.bestSellingBadge}>
-            <Text style={styles.bestSellingText}>{translations.bestSelling.split(' ')[0]}</Text>
-            <Text style={styles.bestSellingText}>{translations.bestSelling.split(' ')[1]}</Text>
-          </View>
-        )}
-
-        <View style={styles.imageSection}>
-          <View style={styles.imageContainer}>
-            <Image source={{ uri: item.image }} style={styles.itemImage} />
-            <View style={styles.itemBadge}>
-              <Ionicons name="checkmark" size={12} color="#fff" />
+        {/* Sol taraf - Ürün kartı */}
+        <View style={[styles.productCard, { backgroundColor: isDarkMode ? '#333' : '#fff' }]}>
+          {/* Flash Sale or Best Selling Badge */}
+          {isFlashSale ? (
+            <View style={styles.flashSaleBadge}>
+              <Text style={styles.flashSaleText}>{translations.flashSale.split(' ')[0]}</Text>
+              <Text style={styles.flashSaleText}>{translations.flashSale.split(' ')[1]}</Text>
             </View>
+          ) : (
+            <View style={styles.bestSellingBadge}>
+              <Text style={styles.bestSellingText}>{translations.bestSellingLine1}</Text>
+              <Text style={styles.bestSellingText}>{translations.bestSellingLine2}</Text>
+            </View>
+          )}
+
+          <View style={styles.imageContainer}>
+            <Image source={{ uri: item.image }} style={styles.productImage} />
           </View>
 
           {/* Fast Delivery or BestSeller Label */}
           {hasFastDelivery ? (
             <View style={styles.fastDeliveryBadge}>
+              <Ionicons name="flash" size={12} color="white" style={styles.deliveryIcon} />
               <Text style={styles.fastDeliveryText}>{translations.fastDelivery}</Text>
             </View>
           ) : (
             <View style={styles.bestSellerBadge}>
+              <Ionicons name="star" size={12} color="white" style={styles.deliveryIcon} />
               <Text style={styles.bestSellerText}>{translations.bestSeller}</Text>
             </View>
           )}
+
+          <Text style={[styles.productName, { color: isDarkMode ? '#fff' : '#2c3e50' }]} numberOfLines={2}>
+            {item.name}
+          </Text>
         </View>
 
+        {/* Sağ taraf - Ürün detayları ve kontroller */}
         <View style={styles.itemDetails}>
           <View style={styles.itemHeader}>
-            <Text style={[styles.name, { color: isDarkMode ? '#fff' : '#333' }]}>{item.name}</Text>
             <TouchableOpacity
               style={styles.removeButton}
               onPress={() => removeFromCart(index)}
@@ -120,17 +150,19 @@ export default function Cart() {
           </View>
 
           <View style={styles.detailsRow}>
-            <Text style={styles.detailLabel}>{translations.size}:</Text>
-            <Text style={[styles.detailValue, { color: isDarkMode ? '#fff' : '#333' }]}>{item.size}</Text>
+            <Text style={[styles.detailLabel, { color: isDarkMode ? 'white' : "#333" }]}>
+              {translations.size}:
+            </Text>
+            {/* Size değerini görüntüle - eğer yoksa "N/A" göster */}
+            <Text style={[styles.detailValue, { color: isDarkMode ? '#fff' : '#333' }]}>
+              {item.size || 'N/A'}
+            </Text>
           </View>
 
           <View style={styles.detailsRow}>
-            <Text style={styles.detailLabel}>{translations.price}:</Text>
-            <Text style={[styles.detailValue, { color: isDarkMode ? '#fff' : '#333' }]}>{item.price}</Text>
-          </View>
-
-          <View style={styles.detailsRow}>
-            <Text style={styles.detailLabel}>{translations.quantity}:</Text>
+            <Text style={[styles.detailLabel, { color: isDarkMode ? 'white' : "#333" }]}>
+              {translations.quantity}:
+            </Text>
             <View style={styles.amountContainer}>
               <TouchableOpacity
                 style={styles.amountButton}
@@ -138,7 +170,9 @@ export default function Cart() {
               >
                 <Text style={styles.buttonText}>-</Text>
               </TouchableOpacity>
-              <Text style={[styles.amountText, { color: isDarkMode ? '#fff' : '#333' }]}>{item.amount}</Text>
+              <Text style={[styles.amountText, { color: isDarkMode ? '#fff' : '#333' }]}>
+                {item.amount}
+              </Text>
               <TouchableOpacity
                 style={styles.amountButton}
                 onPress={() => increaseAmount(index)}
@@ -149,7 +183,9 @@ export default function Cart() {
           </View>
 
           <View style={styles.detailsRow}>
-            <Text style={styles.detailLabel}>{translations.total}:</Text>
+            <Text style={[styles.detailLabel, { color: isDarkMode ? 'white' : "#333" }]}>
+              {translations.total}:
+            </Text>
             <Text style={styles.subtotalValue}>
               {(parseFloat(item.price.replace('₺', '').replace(',', '.')) * item.amount).toFixed(2)} ₺
             </Text>
@@ -184,9 +220,10 @@ export default function Cart() {
       <Text style={[styles.title, { color: isDarkMode ? '#fff' : '#333' }]}>{translations.cart}</Text>
       <FlatList
         data={cartItems}
-        keyExtractor={(item, index) => item.name + index}
+        keyExtractor={(item, index) => item.id + index + language}
         renderItem={renderItem}
         contentContainerStyle={{ paddingBottom: 20 }}
+        extraData={language}
       />
       <View style={[styles.checkoutContainer, { backgroundColor: isDarkMode ? '#2d2d2d' : '#fff' }]}>
         <View style={styles.totalContainer}>
@@ -205,6 +242,8 @@ export default function Cart() {
   );
 }
 
+// Styles aynı kalıyor...
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -216,12 +255,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: '#f8f9fa',
-  },
-  itemImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    backgroundColor: '#fff',
   },
   image: {
     width: 120,
@@ -243,7 +276,7 @@ const styles = StyleSheet.create({
   button: {
     width: 220,
     height: 50,
-    backgroundColor: "orange",
+    backgroundColor: "#ce6302",
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -284,53 +317,132 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
-    borderLeftWidth: 4,
-    borderLeftColor: '#007BFF',
   },
-  imageSection: {
+  productCard: {
+    backgroundColor: '#fff',
+    width: 130,
+    borderRadius: 16,
+    padding: 12,
     alignItems: 'center',
+    position: 'relative',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    marginRight: 16,
   },
   imageContainer: {
-    position: 'relative',
-    marginBottom: 8,
-  },
-  itemBadge: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-    backgroundColor: '#28a745',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    justifyContent: 'center',
+    width: '100%',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#fff',
+    marginBottom: 12,
+    position: 'relative',
+  },
+  productImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    backgroundColor: '#f8f9fa',
+  },
+  flashSaleBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: '#FF4757',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    zIndex: 1,
+    alignItems: 'center',
+    elevation: 2,
+  },
+  flashSaleText: {
+    color: 'white',
+    fontSize: 9,
+    fontWeight: 'bold',
+    lineHeight: 11,
+  },
+  bestSellingBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: '#FF6B35',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    zIndex: 1,
+    alignItems: 'center',
+    elevation: 2,
+  },
+  bestSellingText: {
+    color: 'white',
+    fontSize: 9,
+    fontWeight: 'bold',
+    lineHeight: 11,
+  },
+  fastDeliveryBadge: {
+    backgroundColor: '#2ED573',
+    width: '100%',
+    paddingVertical: 6,
+    marginTop: 8,
+    alignItems: 'center',
+    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  fastDeliveryText: {
+    fontSize: 11,
+    color: 'white',
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  bestSellerBadge: {
+    backgroundColor: '#FF6B35',
+    width: '100%',
+    paddingVertical: 6,
+    marginTop: 8,
+    alignItems: 'center',
+    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  bestSellerText: {
+    fontSize: 11,
+    color: 'white',
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  deliveryIcon: {
+    marginRight: 2,
+  },
+  productName: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginTop: 12,
+    textAlign: 'center',
+    color: '#2c3e50',
+    lineHeight: 20,
   },
   itemDetails: {
     flex: 1,
-    marginLeft: 16,
+    marginLeft: 8,
   },
   itemHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'flex-start',
     marginBottom: 8,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    flex: 1,
-    marginRight: 8,
+    paddingVertical: 8
   },
   detailsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 12,
+    paddingVertical: 5
   },
   detailLabel: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666',
     fontWeight: '500',
   },
@@ -343,10 +455,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   amountButton: {
-    backgroundColor: 'orange',
+    backgroundColor: '#FF6B35',
     borderRadius: 4,
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -359,70 +471,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subtotalValue: {
-    fontSize: 14,
-    color: '#28a745',
+    fontSize: 16,
+    color: '#2988BF',
     fontWeight: 'bold',
   },
   removeButton: {
     padding: 4,
-  },
-  flashSaleBadge: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: '#ff4444',
-    borderRadius: 20,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    zIndex: 1,
-    alignItems: 'center',
-  },
-  flashSaleText: {
-    color: 'white',
-    fontSize: 8,
-    fontWeight: 'bold',
-    lineHeight: 10,
-  },
-  bestSellingBadge: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: 'orange',
-    borderRadius: 20,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    zIndex: 1,
-    alignItems: 'center',
-  },
-  bestSellingText: {
-    color: 'white',
-    fontSize: 8,
-    fontWeight: 'bold',
-    lineHeight: 10,
-  },
-  fastDeliveryBadge: {
-    backgroundColor: '#4CAF50',
-    width: '100%',
-    paddingVertical: 4,
-    marginBottom: 8,
-    alignItems: 'center',
-  },
-  fastDeliveryText: {
-    fontSize: 10,
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  bestSellerBadge: {
-    backgroundColor: 'orange',
-    width: '100%',
-    paddingVertical: 4,
-    marginBottom: 8,
-    alignItems: 'center',
-  },
-  bestSellerText: {
-    fontSize: 10,
-    color: 'white',
-    fontWeight: 'bold',
   },
   checkoutContainer: {
     backgroundColor: '#fff',

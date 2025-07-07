@@ -109,8 +109,6 @@ export default function Account() {
                 translucent={false}
             />
 
-            {/* Header kısmı tamamen kaldırıldı */}
-
             {/* Profile Section - üst padding eklendi */}
             <View style={[styles.profileSection, { backgroundColor: theme.surface }]}>
                 <View style={styles.profileImageContainer}>
@@ -124,8 +122,7 @@ export default function Account() {
                 </View>
 
                 <View style={styles.profileInfo}>
-                    <Text style={[styles.userName, { color: theme.text }]}>{user.name}</Text>
-                    <Text style={[styles.userEmail, { color: theme.textSecondary }]}>{user.email}</Text>
+                    <Text style={[styles.userName, { color: theme.text }]}>{translations.welcome} {user.name}</Text>
                 </View>
             </View>
 

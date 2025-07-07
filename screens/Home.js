@@ -42,8 +42,8 @@ const ProductCard = React.memo(({ item, isFavorite, isFlashSale, hasFastDelivery
                 </View>
             ) : (
                 <View style={styles.bestSellingBadge}>
-                    <Text style={styles.bestSellingText}>{translations.bestSelling.split(' ')[0]}</Text>
-                    <Text style={styles.bestSellingText}>{translations.bestSelling.split(' ')[1]}</Text>
+                    <Text style={styles.bestSellingText}>{translations.bestSellingLine1}</Text>
+                    <Text style={styles.bestSellingText}>{translations.bestSellingLine2}</Text>
                 </View>
             )}
 
@@ -245,10 +245,10 @@ export default function Home() {
                 translucent={false}
             />
 
-            {/* Header with search and filters */}
-            <View style={[styles.headerContainer, { backgroundColor: theme.surface }]}>
+            {/* Search and filters */}
+            <View style={[styles.headerContainer, { backgroundColor: theme.background }]}>
                 {/* Search Box */}
-                <View style={[styles.searchBox, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                <View style={[styles.searchBox, { backgroundColor: theme.background, borderColor: "black" }]}>
                     <Ionicons name="search" size={22} color={theme.textSecondary} style={styles.searchIcon} />
                     <TextInput
                         style={[styles.textInput, { color: theme.text }]}
@@ -296,12 +296,12 @@ export default function Home() {
 
 const styles = StyleSheet.create({
     container: {
+        paddingTop: 23,
         flex: 1,
-        backgroundColor: '#f8f9fa',
+        backgroundColor: '#fff',
     },
     headerContainer: {
         backgroundColor: '#fff',
-        paddingTop: Platform.OS === 'ios' ? 44 : 0, // Status bar height for iOS
         paddingBottom: 20,
         paddingHorizontal: 20,
         elevation: 4,
@@ -309,6 +309,8 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
+        zIndex: 1000, // Header için z-index eklendi
+        position: 'relative', // Position eklendi
     },
     loadingContainer: {
         flex: 1,
@@ -331,8 +333,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#f8f9fa',
         borderRadius: 16,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
         marginBottom: 15,
         marginTop: 15, // Üstte biraz boşluk ekledik
         borderWidth: 1,
@@ -354,6 +356,7 @@ const styles = StyleSheet.create({
     productList: {
         paddingTop: 20,
         paddingBottom: 100,
+        zIndex: 1, // Ürün listesi için düşük z-index
     },
     card: {
         backgroundColor: '#fff',

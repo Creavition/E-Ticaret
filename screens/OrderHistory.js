@@ -206,7 +206,7 @@ export default function OrderHistory() {
                             {/* Total Summary */}
                             <View style={styles.totalSummaryCard}>
                                 <View style={styles.totalSummaryRow}>
-                                    <Text style={styles.totalSummaryLabel}>Toplam Tutar</Text>
+                                    <Text style={[styles.totalSummaryLabel, { color: isDarkMode ? "" : "" }]}>Toplam Tutar</Text>
                                     <Text style={styles.totalSummaryValue}>{selectedOrder?.totalAmount} ₺</Text>
                                 </View>
                             </View>
@@ -230,7 +230,7 @@ export default function OrderHistory() {
                 {/* Empty State */}
                 <View style={styles.emptyContainer}>
                     <View style={[styles.emptyIconContainer, { backgroundColor: isDarkMode ? '#444' : '#f5f5f5' }]}>
-                        <Ionicons name="receipt-outline" size={80} color={isDarkMode ? '#666' : '#e0e0e0'} />
+                        <Ionicons name="receipt-outline" size={80} color={isDarkMode ? '#ce6302' : '#ce6302'} />
                     </View>
                     <Text style={[styles.emptyTitle, { color: isDarkMode ? '#fff' : '#333' }]}>{translations.noOrders}</Text>
                     <Text style={[styles.emptySubtitle, { color: isDarkMode ? '#b3b3b3' : '#666' }]}>{translations.noOrdersMessage}</Text>
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
     shopButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#007BFF',
+        backgroundColor: '#ce6302',
         paddingHorizontal: 24,
         paddingVertical: 12,
         borderRadius: 25,
@@ -652,9 +652,10 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     totalSummaryCard: {
-        backgroundColor: '#007BFF',
+        backgroundColor: 'white',
         padding: 16,
         borderRadius: 12,
+        borderWidth: 1,
         marginBottom: 20,
     },
     totalSummaryRow: {
@@ -664,13 +665,13 @@ const styles = StyleSheet.create({
     },
     totalSummaryLabel: {
         fontSize: 14,
-        color: '#fff',
+        color: 'black',
         fontWeight: '500',
     },
     totalSummaryValue: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#fff',
+        color: 'black',
     },
     modalOverlay: {
         flex: 1,

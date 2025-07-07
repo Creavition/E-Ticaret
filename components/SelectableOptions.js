@@ -8,12 +8,12 @@ import {
     StyleSheet,
 } from "react-native";
 import { useLanguage } from "../contexts/LanguageContext";
-import { useTheme } from "../contexts/ThemeContext"; // Bu satırı ekleyin
+import { useTheme } from "../contexts/ThemeContext";
 
 export default function SelectableOptions({ onSelect }) {
     const navigation = useNavigation();
     const { translations } = useLanguage();
-    const { theme, isDarkMode } = useTheme(); // Bu satırı ekleyin
+    const { theme, isDarkMode } = useTheme();
     const [selected, setSelected] = useState(null);
     const [open, setOpen] = useState(false);
 
@@ -29,66 +29,71 @@ export default function SelectableOptions({ onSelect }) {
 
     return (
         <View style={styles.container}>
-            <TouchableOpacity
-                style={[
-                    styles.selector,
-                    {
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        backgroundColor: isDarkMode ? theme.surface : '#fff',
-                        borderColor: isDarkMode ? theme.border : 'orange'
-                    }
-                ]}
-                onPress={toggleDropdown}
-            >
-                <Ionicons
-                    name="swap-vertical"
-                    size={20}
-                    color={isDarkMode ? theme.text : "#333"}
-                    style={{ marginRight: 8 }}
-                />
-                <Text style={[styles.selectorText, { color: isDarkMode ? theme.text : '#333' }]}>
-                    {selected || translations.sortBy}
-                </Text>
-            </TouchableOpacity>
+            {/* Sort By Button Container */}
+            <View style={[styles.sortContainer, open && styles.sortContainerOpen]}>
+                <TouchableOpacity
+                    style={[
+                        styles.selector,
+                        {
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            backgroundColor: isDarkMode ? theme.surface : '#fff',
+                            borderColor: isDarkMode ? theme.border : 'black'
+                        }
+                    ]}
+                    onPress={toggleDropdown}
+                >
+                    <Ionicons
+                        name="swap-vertical"
+                        size={20}
+                        color={isDarkMode ? theme.text : "#333"}
+                        style={{ marginRight: 8 }}
+                    />
+                    <Text style={[styles.selectorText, { color: isDarkMode ? theme.text : '#333' }]}>
+                        {selected || translations.sortBy}
+                    </Text>
+                </TouchableOpacity>
 
-            {open && (
-                <View style={[
-                    styles.dropdown,
-                    {
-                        backgroundColor: isDarkMode ? theme.surface : '#fff',
-                        borderColor: isDarkMode ? theme.border : '#999'
-                    }
-                ]}>
-                    {options.map((option, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            style={[
-                                styles.option,
-                                { backgroundColor: isDarkMode ? theme.surface : '#fff' },
-                                index !== options.length - 1 && [
-                                    styles.optionBorder,
-                                    { borderBottomColor: isDarkMode ? theme.border : '#ddd' }
-                                ]
-                            ]}
-                            onPress={() => selectOption(option)}
-                        >
-                            <Text style={[styles.optionText, { color: isDarkMode ? theme.text : '#333' }]}>
-                                {option}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            )}
+                {/* Dropdown - Sort butonunun tam altında */}
+                {open && (
+                    <View style={[
+                        styles.dropdown,
+                        {
+                            backgroundColor: isDarkMode ? theme.surface : '#fff',
+                            borderColor: isDarkMode ? theme.border : '#999'
+                        }
+                    ]}>
+                        {options.map((option, index) => (
+                            <TouchableOpacity
+                                key={index}
+                                style={[
+                                    styles.option,
+                                    { backgroundColor: isDarkMode ? theme.surface : '#fff' },
+                                    index !== options.length - 1 && [
+                                        styles.optionBorder,
+                                        { borderBottomColor: isDarkMode ? theme.border : '#ddd' }
+                                    ]
+                                ]}
+                                onPress={() => selectOption(option)}
+                            >
+                                <Text style={[styles.optionText, { color: isDarkMode ? theme.text : '#333' }]}>
+                                    {option}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                )}
+            </View>
 
+            {/* Filter Button */}
             <TouchableOpacity
                 style={[
                     styles.selector,
                     {
                         flexDirection: "row",
                         backgroundColor: isDarkMode ? theme.surface : '#fff',
-                        borderColor: isDarkMode ? theme.border : 'orange'
+                        borderColor: isDarkMode ? theme.border : 'black'
                     }
                 ]}
                 onPress={() => { navigation.navigate("Filter") }}
@@ -110,13 +115,22 @@ export default function SelectableOptions({ onSelect }) {
 const styles = StyleSheet.create({
     container: {
         alignItems: 'center',
-        marginBottom: 10,
         flexDirection: "row",
-        marginLeft: 40
+        justifyContent: 'center',
+        paddingHorizontal: 20,
+        marginVertical: 10,
+        zIndex: 1000, // Container için yüksek z-index
+    },
+    sortContainer: {
+        position: 'relative',
+        marginRight: 15,
+        zIndex: 2000, // Daha yüksek z-index
+    },
+    sortContainerOpen: {
+        zIndex: 3000, // Dropdown açıkken en yüksek z-index
     },
     selector: {
         width: 160,
-        marginRight: 10,
         paddingVertical: 10,
         paddingHorizontal: 12,
         backgroundColor: '#fff',
@@ -131,17 +145,26 @@ const styles = StyleSheet.create({
     },
     dropdown: {
         position: 'absolute',
-        top: 45,
-        zIndex: 999,
-        width: 160,
+        top: 52, // Sort butonunun hemen altında (button height + 2px spacing)
+        left: 0,
+        zIndex: 3001, // En yüksek z-index
+        width: 160, // Sort butonu ile aynı genişlik
         backgroundColor: '#fff',
         borderColor: '#999',
         borderWidth: 1,
         borderRadius: 8,
         overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 10, // Android için çok yüksek elevation
     },
     option: {
-        paddingVertical: 10,
+        paddingVertical: 12,
         paddingHorizontal: 12,
         backgroundColor: '#fff',
     },
@@ -152,5 +175,6 @@ const styles = StyleSheet.create({
     optionText: {
         fontSize: 16,
         color: '#333',
+        textAlign: 'center',
     },
 });

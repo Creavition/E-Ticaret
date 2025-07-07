@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     ScrollView
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useProduct } from '../contexts/ProductContext';
 import { useFilter } from '../contexts/FilterContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -58,6 +59,12 @@ export default function Filter() {
 
     return (
         <ScrollView contentContainerStyle={[styles.container, { backgroundColor: isDarkMode ? theme.background : '#fff' }]}>
+            <TouchableOpacity
+                style={{ alignSelf: "flex-start", paddingTop: 20 }}
+                onPress={() => navigation.goBack()}
+            >
+                <Ionicons name="close" size={24} color={isDarkMode ? '#fff' : '#333'} />
+            </TouchableOpacity>
             {/* Price Filter */}
             <Text style={[styles.text, { color: isDarkMode ? theme.text : '#000' }]}>{translations.price}</Text>
             <View style={styles.rowContainer}>
@@ -204,6 +211,7 @@ export default function Filter() {
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         padding: 20,
         alignItems: 'center',
     },
@@ -245,8 +253,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     categoryButtonSelected: {
-        backgroundColor: 'orange',
-        borderColor: 'orange',
+        backgroundColor: '#ce6302',
+        borderColor: '#ce6302',
     },
     categoryText: {
         color: 'black',
@@ -265,8 +273,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#f2f2f2',
     },
     sizeBoxSelected: {
-        backgroundColor: 'orange',
-        borderColor: 'orange',
+        backgroundColor: '#ce6302',
+        borderColor: '#ce6302',
     },
     sizeText: {
         fontSize: 14,
@@ -295,7 +303,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'orange',
+        backgroundColor: '#ce6302',
     },
     clearButton: {
         backgroundColor: '#f0f0f0',

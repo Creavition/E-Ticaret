@@ -28,33 +28,35 @@ export default function CreditCard() {
 
     return (
         <View style={styles.container}>
-            <ImageBackground
-                source={
-                    isBackView
-                        ? require('../assets/images/mavi.png')  // kartın arka yüzü
-                        : require('../assets/images/mavi.png')  // kartın ön yüzü
-                }
-                resizeMode="cover"
-                style={styles.card}
-                imageStyle={{ borderRadius: 16 }}
-            >
-                {isBackView ? (
-                    <View style={styles.backContent}>
-                        <Text style={styles.cvvValue}>{cvv || '***'}</Text>
-                    </View>
-                ) : (
-                    <>
-                        <Text style={styles.cardTitle}>CREDIT CARD</Text>
-                        <Text style={styles.cardText}>
-                            {cardNumber || '**** **** **** ****'}
-                        </Text>
-                        <View style={styles.row}>
-                            <Text style={{ color: 'white' }}>{name || "Name Surname"}</Text>
-                            <Text style={{ color: 'white' }}>{expiry || "MM/YY"}</Text>
+            <View style={{ alignItems: "center" }}>
+                <ImageBackground
+                    source={
+                        isBackView
+                            ? require('../assets/images/mavi.png')  // kartın arka yüzü
+                            : require('../assets/images/mavi.png')  // kartın ön yüzü
+                    }
+                    resizeMode="cover"
+                    style={styles.card}
+                    imageStyle={{ borderRadius: 16 }}
+                >
+                    {isBackView ? (
+                        <View style={styles.backContent}>
+                            <Text style={styles.cvvValue}>{cvv || '***'}</Text>
                         </View>
-                    </>
-                )}
-            </ImageBackground>
+                    ) : (
+                        <>
+                            <Text style={styles.cardTitle}>CREDIT CARD</Text>
+                            <Text style={styles.cardText}>
+                                {cardNumber || '**** **** **** ****'}
+                            </Text>
+                            <View style={styles.row}>
+                                <Text style={{ color: 'white' }}>{name || "Name Surname"}</Text>
+                                <Text style={{ color: 'white' }}>{expiry || "MM/YY"}</Text>
+                            </View>
+                        </>
+                    )}
+                </ImageBackground>
+            </View>
 
 
             <TextInput
@@ -98,12 +100,12 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     card: {
-        width: 300,
+        width: 320,
         height: 200,
         borderRadius: 16,
         padding: 20,
         marginBottom: 30,
-        justifyContent: 'space-between',
+        justifyContent: 'space-between'
     },
     cardTitle: {
         color: '#fff',
