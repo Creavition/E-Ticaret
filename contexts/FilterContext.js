@@ -1,7 +1,7 @@
 // contexts/FilterContext.js
 import React, { createContext, useContext, useState } from 'react';
 
-const FilterContext = createContext();
+const FilterContext = createContext(); // context olusturma
 
 export function FilterProvider({ children }) {
     const [filters, setFilters] = useState({
@@ -13,8 +13,8 @@ export function FilterProvider({ children }) {
 
     const updateFilters = (newFilters) => {
         setFilters(prevFilters => ({
-            ...prevFilters,
-            ...newFilters
+            ...prevFilters, //...prev: Mevcut filtrelerin hepsini alır.
+            ...newFilters //Yeni gelen değerleri öncekilerin üzerine ezerek yazar.
         }));
     };
 
@@ -46,7 +46,9 @@ export function FilterProvider({ children }) {
         }}>
             {children}
         </FilterContext.Provider>
+        // value kismi icerisinde belirtilen degiskenlere ve fonksiyonlara FilterContext altindaki yapilar (childrenlar) erisebilir.
     );
 }
 
-export const useFilter = () => useContext(FilterContext);
+export const useFilter = () => useContext(FilterContext); // childrenlar useFilter kullanarak 
+// const { filters, updateFilters } = useFilter(); gibi value icerisinde belirtilen ozelliklerden hepsini veya istenilen kadarini kullanabilir.

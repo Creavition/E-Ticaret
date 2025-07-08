@@ -1,14 +1,9 @@
 import React, { createContext, useContext } from 'react';
+import { sizeMap } from '../utils/productUtils';
 
-const sizeMap = {
-    'Jacket': ['S', 'M', 'L', 'XL'],
-    'Pants': ['30', '32', '34', '36'],
-    'T-Shirt': ['S', 'M', 'L', 'XL'],
-    'Shoes': ['40', '42', '43', '44'],
-};
 
 const ProductContext = createContext();
-
+//ba
 export const ProductProvider = ({ children }) => {
     return (
         <ProductContext.Provider value={{ sizeMap }}>

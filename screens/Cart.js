@@ -242,7 +242,6 @@ export default function Cart() {
   );
 }
 
-// Styles aynı kalıyor...
 
 const styles = StyleSheet.create({
   container: {
@@ -297,6 +296,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   title: {
+    marginTop: 10,
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 20,
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
   },
   subtotalValue: {
     fontSize: 16,
-    color: '#2988BF',
+    color: '#7f4612',
     fontWeight: 'bold',
   },
   removeButton: {
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   checkoutButton: {
-    backgroundColor: "#2988BF",
+    backgroundColor: "#d27c2e",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 10,

@@ -1,6 +1,6 @@
 // ProductDetail.js
 import React, { useState, useContext } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Animated, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { CartContext } from '../contexts/CartContext';
@@ -39,8 +39,6 @@ export default function ProductDetail({ route }) {
         ]).start();
     };
 
-    // ProductDetail.js - handleAddToCart fonksiyonu
-
     const handleAddToCart = () => {
         console.log('handleAddToCart called with selectedSize:', selectedSize);
 
@@ -51,7 +49,7 @@ export default function ProductDetail({ route }) {
 
         const itemToAdd = {
             ...product,
-            size: selectedSize, // ✅ Seçilen beden burada set ediliyor
+            size: selectedSize,
             amount: 1,
         };
 
@@ -85,7 +83,7 @@ export default function ProductDetail({ route }) {
 
             <Image source={{ uri: product.image }} style={styles.image} />
             <Text style={[styles.name, { color: isDarkMode ? '#fff' : '#000' }]}>{product.name}</Text>
-            <Text style={[styles.price, { color: isDarkMode ? '#b3b3b3' : '#666' }]}>{product.price}</Text>
+            <Text style={[styles.price, { color: isDarkMode ? '#ce6302' : '#ce6302' }]}>{product.price}</Text>
 
             <Text style={[styles.sizeTitle, { color: isDarkMode ? '#fff' : '#000' }]}>
                 {translations.sizeOptions}
@@ -107,15 +105,15 @@ export default function ProductDetail({ route }) {
                                     backgroundColor: isSelected && isAvailable
                                         ? '#007BFF'
                                         : isDarkMode
-                                            ? (isAvailable ? '#444' : '#222')
-                                            : (isAvailable ? '#f8f9fa' : '#e9ecef')
+                                            ? (isAvailable ? '#444' : '#2a2a2a')
+                                            : (isAvailable ? '#f8f9fa' : '#f0f0f0')
                                 },
                                 {
                                     borderColor: isSelected && isAvailable
                                         ? '#007BFF'
                                         : isDarkMode
-                                            ? (isAvailable ? '#666' : '#333')
-                                            : (isAvailable ? '#007BFF' : '#ccc')
+                                            ? (isAvailable ? '#666' : '#444')
+                                            : (isAvailable ? '#007BFF' : '#d0d0d0')
                                 }
                             ]}
                             onPress={() => isAvailable && setSelectedSize(size)}
@@ -135,11 +133,18 @@ export default function ProductDetail({ route }) {
                             ]}>
                                 {size}
                             </Text>
+
+                            {/* İyileştirilmiş çarpı işareti */}
                             {!isAvailable && (
-                                <View style={styles.crossContainer}>
+                                <View style={[
+                                    styles.crossContainer,
+                                    {
+                                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.95)'
+                                    }
+                                ]}>
                                     <Ionicons
                                         name="close"
-                                        size={18}
+                                        size={14}
                                         color="#ff4444"
                                         style={styles.crossIcon}
                                     />
@@ -256,14 +261,12 @@ const styles = StyleSheet.create({
         marginBottom: 35,
     },
     sizeBox: {
-        paddingHorizontal: 18,
-        paddingVertical: 14,
         borderRadius: 12,
-        margin: 8,
-        borderWidth: 2.5,
+        margin: 6,
+        borderWidth: 2,
         alignItems: 'center',
-        Width: 45,
-        Height: 40,
+        width: 60,
+        height: 60,
         justifyContent: 'center',
         elevation: 4,
         shadowColor: '#000',
@@ -278,57 +281,77 @@ const styles = StyleSheet.create({
     selectedSizeBox: {
         backgroundColor: '#007BFF',
         borderColor: '#007BFF',
-        transform: [{ scale: 1.08 }],
+        transform: [{ scale: 1.05 }],
         elevation: 6,
         shadowOpacity: 0.3,
     },
     unavailableSizeBox: {
         backgroundColor: '#f5f5f5',
         borderColor: '#ddd',
-        opacity: 0.5,
+        opacity: 0.7,
         elevation: 1,
     },
     sizeText: {
-        fontSize: 16,
-        fontWeight: '700',
+        fontSize: 15,
+        fontWeight: '600',
+        textAlign: 'center',
+        lineHeight: 18,
     },
     selectedSizeText: {
         color: 'white',
-        fontWeight: 'bold',
+        fontWeight: '700',
+        textAlign: 'center',
+        lineHeight: 18,
     },
     unavailableSizeText: {
-        fontSize: 16,
+        fontSize: 15,
         color: '#999',
         textDecorationLine: 'line-through',
         fontWeight: '500',
+        textAlign: 'center',
+        lineHeight: 18,
     },
     crossContainer: {
         position: 'absolute',
-        top: -8,
-        right: -8,
+        top: -5,
+        right: -5,
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         borderRadius: 10,
         padding: 2,
-        elevation: 3,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 2,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 68, 68, 0.3)',
+        width: 20,
+        height: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     crossIcon: {
-        // Icon styles are handled by the container
+        // Icon kendisi için ekstra stil gerekmiyor
     },
     buttonContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
+        alignItems: "center",
         width: '100%',
         gap: 12,
     },
     cartButton: {
         backgroundColor: '#ce6302',
         paddingVertical: 16,
-        paddingHorizontal: 32,
+        paddingHorizontal: 22,
         borderRadius: 12,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        width: '100%',
+        width: '80%',
         elevation: 3,
         shadowColor: '#000',
         shadowOffset: {

@@ -31,7 +31,7 @@ export default function OrderHistory() {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'Completed': return '#4CAF50';
+            case 'Completed': return '#E88A35';
             case 'Processing': return '#FF9800';
             case 'Shipped': return '#2196F3';
             case 'Delivered': return '#4CAF50';
@@ -50,7 +50,7 @@ export default function OrderHistory() {
     };
 
     const renderOrderItem = ({ item, index }) => (
-        <View style={[styles.orderCard, { marginTop: index === 0 ? 0 : 16, backgroundColor: isDarkMode ? '#333' : '#fff', borderLeftColor: '#007BFF' }]}>
+        <View style={[styles.orderCard, { marginTop: index === 0 ? 0 : 16, backgroundColor: isDarkMode ? '#333' : '#fff' }]}>
             <View style={styles.cardHeader}>
                 <View style={styles.orderNumberContainer}>
                     <Ionicons name="receipt" size={16} color={isDarkMode ? '#b3b3b3' : '#666'} />
@@ -116,7 +116,7 @@ export default function OrderHistory() {
                         {/* Modal Header */}
                         <View style={[styles.bottomSheetHeader, { borderBottomColor: isDarkMode ? '#444' : '#f0f0f0' }]}>
                             <View style={styles.headerLeft}>
-                                <Ionicons name="receipt" size={24} color="#007BFF" />
+                                <Ionicons name="receipt" size={24} color="#ce6302" />
                                 <Text style={[styles.bottomSheetTitle, { color: isDarkMode ? '#fff' : '#333' }]}>
                                     {translations.orderDetails}
                                 </Text>
@@ -146,17 +146,17 @@ export default function OrderHistory() {
                             {/* Quick Info */}
                             <View style={styles.quickInfoRow}>
                                 <View style={[styles.quickInfoItem, { backgroundColor: isDarkMode ? '#444' : '#f8f9fa' }]}>
-                                    <Ionicons name="card" size={16} color={isDarkMode ? '#b3b3b3' : '#666'} />
+                                    <Ionicons name="card" size={16} color={isDarkMode ? '#ce6302' : '#ce6302'} />
                                     <Text style={[styles.quickInfoLabel, { color: isDarkMode ? '#b3b3b3' : '#666' }]}>Ödeme</Text>
                                     <Text style={[styles.quickInfoValue, { color: isDarkMode ? '#fff' : '#333' }]}>Kart</Text>
                                 </View>
                                 <View style={[styles.quickInfoItem, { backgroundColor: isDarkMode ? '#444' : '#f8f9fa' }]}>
-                                    <Ionicons name="cube" size={16} color={isDarkMode ? '#b3b3b3' : '#666'} />
+                                    <Ionicons name="cube" size={16} color={isDarkMode ? '#ce6302' : '#ce6302'} />
                                     <Text style={[styles.quickInfoLabel, { color: isDarkMode ? '#b3b3b3' : '#666' }]}>Ürün</Text>
                                     <Text style={[styles.quickInfoValue, { color: isDarkMode ? '#fff' : '#333' }]}>{selectedOrder?.items?.length || 0} adet</Text>
                                 </View>
                                 <View style={[styles.quickInfoItem, { backgroundColor: isDarkMode ? '#444' : '#f8f9fa' }]}>
-                                    <Ionicons name="cash" size={16} color={isDarkMode ? '#b3b3b3' : '#666'} />
+                                    <Ionicons name="cash" size={16} color={isDarkMode ? '#ce6302' : '#ce6302'} />
                                     <Text style={[styles.quickInfoLabel, { color: isDarkMode ? '#b3b3b3' : '#666' }]}>Toplam</Text>
                                     <Text style={[styles.quickInfoValue, { color: isDarkMode ? '#fff' : '#333' }]}>{selectedOrder?.totalAmount} ₺</Text>
                                 </View>
@@ -167,36 +167,38 @@ export default function OrderHistory() {
                                 <Text style={[styles.sectionTitle, { color: isDarkMode ? '#fff' : '#333' }]}>Sipariş Edilen Ürünler ({selectedOrder?.items?.length || 0} Adet)</Text>
                                 {selectedOrder?.items?.map((item, index) => (
                                     <View key={index} style={[styles.modernItemCard, { backgroundColor: isDarkMode ? '#333' : '#fff', borderColor: isDarkMode ? '#444' : '#f0f0f0' }]}>
-                                        <Image source={{ uri: item.image }} style={[styles.modernItemImage, { backgroundColor: isDarkMode ? '#444' : '#f8f9fa' }]} />
-                                        <View style={styles.modernItemInfo}>
-                                            <Text style={[styles.modernItemName, { color: isDarkMode ? '#fff' : '#333' }]}>{item.name}</Text>
-                                            <Text style={[styles.modernItemCategory, { color: isDarkMode ? '#b3b3b3' : '#666' }]}>{item.category}</Text>
+                                        <View style={{ flexDirection: "row" }}>
+                                            <Image source={{ uri: item.image }} style={[styles.modernItemImage, { backgroundColor: isDarkMode ? '#444' : '#f8f9fa' }]} />
+                                            <View style={styles.modernItemInfo}>
+                                                <Text style={[styles.modernItemName, { color: isDarkMode ? '#fff' : '#333' }]}>{item.name}</Text>
+                                                <Text style={[styles.modernItemCategory, { color: isDarkMode ? '#b3b3b3' : '#666' }]}>{item.category}</Text>
 
-                                            {/* Ürün Detayları */}
-                                            <View style={styles.itemDetailsContainer}>
-                                                <View style={styles.detailGroup}>
-                                                    <Text style={styles.detailGroupTitle}>Beden & Adet</Text>
-                                                    <View style={styles.detailRow}>
-                                                        <View style={[styles.detailItem, { backgroundColor: isDarkMode ? '#444' : '#f8f9fa' }]}>
-                                                            <Ionicons name="shirt" size={16} color="#007BFF" />
-                                                            <Text style={[styles.detailText, { color: isDarkMode ? '#fff' : '#333' }]}>Beden: {item.size}</Text>
-                                                        </View>
-                                                        <View style={[styles.detailItem, { backgroundColor: isDarkMode ? '#444' : '#f8f9fa' }]}>
-                                                            <Ionicons name="cube" size={16} color="#007BFF" />
-                                                            <Text style={[styles.detailText, { color: isDarkMode ? '#fff' : '#333' }]}>Adet: {item.amount}</Text>
+                                                {/* Ürün Detayları */}
+                                                <View style={styles.itemDetailsContainer}>
+                                                    <View style={styles.detailGroup}>
+                                                        <Text style={styles.detailGroupTitle}>Beden & Adet</Text>
+                                                        <View style={styles.detailRow}>
+                                                            <View style={[styles.detailItem, { backgroundColor: isDarkMode ? '#444' : '#f8f9fa' }]}>
+                                                                <Ionicons name="shirt" size={16} color="#D06E16" />
+                                                                <Text style={[styles.detailText, { color: isDarkMode ? '#fff' : '#333' }]}>Beden: {item.size}</Text>
+                                                            </View>
+                                                            <View style={[styles.detailItem, { backgroundColor: isDarkMode ? '#444' : '#f8f9fa' }]}>
+                                                                <Ionicons name="cube" size={16} color="#D06E16" />
+                                                                <Text style={[styles.detailText, { color: isDarkMode ? '#fff' : '#333' }]}>Adet: {item.amount}</Text>
+                                                            </View>
                                                         </View>
                                                     </View>
-                                                </View>
 
-                                                <View style={styles.detailGroup}>
-                                                    <Text style={styles.detailGroupTitle}>Fiyat</Text>
-                                                    <View style={[styles.priceContainer, { backgroundColor: isDarkMode ? '#1a2a3a' : '#e3f2fd', borderLeftColor: '#007BFF' }]}>
-                                                        <Text style={[styles.unitPrice, { color: isDarkMode ? '#b3b3b3' : '#666' }]}>Birim: {item.price}</Text>
-                                                        <Text style={styles.totalPrice}>
-                                                            Toplam: {(parseFloat(item.price.replace('₺', '').replace(',', '.')) * item.amount).toFixed(2)} ₺
-                                                        </Text>
-                                                    </View>
                                                 </View>
+                                            </View>
+                                        </View>
+                                        <View style={styles.detailGroup}>
+                                            <Text style={styles.detailGroupTitle}>Fiyat</Text>
+                                            <View style={[styles.priceContainer, { backgroundColor: isDarkMode ? '#1a2a3a' : '#e3f2fd', borderLeftColor: '#007BFF' }]}>
+                                                <Text style={[styles.unitPrice, { color: isDarkMode ? '#b3b3b3' : '#666' }]}>Birim: {item.price}</Text>
+                                                <Text style={styles.totalPrice}>
+                                                    Toplam: {(parseFloat(item.price.replace('₺', '').replace(',', '.')) * item.amount).toFixed(2)} ₺
+                                                </Text>
                                             </View>
                                         </View>
                                     </View>
@@ -204,7 +206,7 @@ export default function OrderHistory() {
                             </View>
 
                             {/* Total Summary */}
-                            <View style={styles.totalSummaryCard}>
+                            <View style={[styles.totalSummaryCard, { backgroundColor: isDarkMode ? 'white' : 'white' }]}>
                                 <View style={styles.totalSummaryRow}>
                                     <Text style={[styles.totalSummaryLabel, { color: isDarkMode ? "" : "" }]}>Toplam Tutar</Text>
                                     <Text style={styles.totalSummaryValue}>{selectedOrder?.totalAmount} ₺</Text>
@@ -316,7 +318,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
         borderLeftWidth: 4,
-        borderLeftColor: '#007BFF',
+        borderLeftColor: '#ce6302',
     },
     cardHeader: {
         flexDirection: 'row',
@@ -564,7 +566,7 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     modernItemCard: {
-        flexDirection: 'row',
+        flexDirection: 'column',
         backgroundColor: '#fff',
         padding: 20,
         borderRadius: 16,
@@ -606,6 +608,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     detailGroupTitle: {
+        textAlign: "center",
         fontSize: 12,
         fontWeight: '600',
         color: '#007BFF',
@@ -636,8 +639,8 @@ const styles = StyleSheet.create({
         padding: 12,
         borderRadius: 8,
         borderLeftWidth: 4,
-        borderLeftColor: '#007BFF',
-        alignItems: 'center',
+        borderLeftColor: '#007BFF'
+
     },
     unitPrice: {
         fontSize: 14,
@@ -655,7 +658,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         padding: 16,
         borderRadius: 12,
-        borderWidth: 1,
+        borderWidth: 0,
         marginBottom: 20,
     },
     totalSummaryRow: {
@@ -671,7 +674,7 @@ const styles = StyleSheet.create({
     totalSummaryValue: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: 'black',
+        color: '#007BFF',
     },
     modalOverlay: {
         flex: 1,

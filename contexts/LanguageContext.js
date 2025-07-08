@@ -166,6 +166,7 @@ const translations = {
         favoritesProduct: "Product",
 
         // Payment
+        name:'Name Surname',
         paymentInformation: 'Payment Information',
         orderSummary: 'Order Summary',
         payNow: 'Pay Now',

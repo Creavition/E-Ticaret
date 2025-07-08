@@ -1,5 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+export const sizeMap = {
+    'Jacket': ['S', 'M', 'L', 'XL'],
+    'Pants': ['30', '32', '34', '36'],
+    'T-Shirt': ['S', 'M', 'L', 'XL'],
+    'Shoes': ['40', '42', '43', '44'],
+};
+
+export const categories = Object.keys(sizeMap); // sizeMap deki keyleri yani Urunlerin isimlerini dizinin icine alir.
 // Görsel eşleşmeleri
 const imageMap = {
     Jacket: 'https://www.pierrecassi.com/wp-content/uploads/2015/01/Erkek-blazer-ceket-kombinasyonlari.png',
@@ -8,7 +16,7 @@ const imageMap = {
     'T-Shirt': 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?crop=entropy&cs=tinysrgb&fit=crop&h=300&w=300',
 };
 
-// Rastgele fiyat üretme
+// Kategoriye Gore rastgele fiyat üretme
 const getRandomPrice = (category) => {
     let min, max;
     switch (category) {
@@ -22,7 +30,7 @@ const getRandomPrice = (category) => {
     return price + '₺';
 };
 
-// Rastgele 3 beden seç
+// Tum bedenlerden(allSizes) Rastgele 3 beden seç
 const getRandomSizes = (allSizes) => {
     const shuffled = [...allSizes].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 3);
@@ -46,6 +54,7 @@ const getProductName = (category, index, language = 'en') => {
     };
 
     return names[language][category][index - 1] || `${category} ${index}`;
+    // Eger names[language][category][index - 1] varsa onu don yoksa `${category} ${index}` don 
 };
 
 // Dil tercihini al
@@ -62,14 +71,6 @@ const getCurrentLanguage = async () => {
 export const generateProducts = async () => {
     const language = await getCurrentLanguage();
 
-    const sizeMap = {
-        'Jacket': ['S', 'M', 'L', 'XL'],
-        'Pants': ['30', '32', '34', '36'],
-        'T-Shirt': ['S', 'M', 'L', 'XL'],
-        'Shoes': ['40', '42', '43', '44'],
-    };
-
-    const categories = Object.keys(sizeMap);
     const products = [];
 
     categories.forEach((category) => {
@@ -82,10 +83,10 @@ export const generateProducts = async () => {
             products.push({
                 id: `${category}-${i}`,
                 name: getProductName(category, i, language),
-                image: imageMap[category],
-                price: getRandomPrice(category),
-                category,
-                size: displaySize, // Filtreleme için kullanılacak
+                image: imageMap[category], //resim linkine ulasma
+                price: getRandomPrice(category), // kategoriye gore belirlenen fiyat araliginda rastgele fiyat olusturma
+                category, // category: category yaziminin kisaltilmisidir.
+                size: displaySize, // Ilk beden
                 availableSizes: availableSizes, // Mevcut bedenler
                 allSizes: allSizes // Tüm beden seçenekleri
             });
@@ -102,12 +103,13 @@ let cachedLanguage = null;
 export const getAllProducts = async () => {
     const currentLanguage = await getCurrentLanguage();
 
-    // Dil değişmişse cache'i temizle
+    // Dil değişmişse urunAdlari degisecegi icin cache'i temizle
     if (cachedLanguage !== currentLanguage) {
         cachedProducts = null;
         cachedLanguage = currentLanguage;
     }
 
+    //Dil degismisse ve cachedProducts bossa generateProducts() fonksiyonuyla urun
     if (!cachedProducts) {
         cachedProducts = await generateProducts();
     }

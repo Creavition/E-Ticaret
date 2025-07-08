@@ -93,7 +93,7 @@ export default function Payment() {
           {translations.size}: {item.size} | {translations.quantity}: {item.amount}
         </Text>
       </View>
-      <Text style={[styles.itemPrice, { color: isDarkMode ? '#fff' : '#007BFF' }]}>
+      <Text style={[styles.itemPrice, { color: isDarkMode ? '#fff' : '#7f4612' }]}>
         {(parseFloat(item.price.replace('₺', '').replace(',', '.')) * item.amount).toFixed(2)} ₺
       </Text>
     </View>
@@ -143,7 +143,7 @@ export default function Payment() {
           <Text style={[styles.totalLabel, { color: isDarkMode ? '#fff' : '#333' }]}>
             {translations.totalAmount}:
           </Text>
-          <Text style={[styles.totalAmount, { color: isDarkMode ? '#fff' : '#007BFF' }]}>
+          <Text style={[styles.totalAmount, { color: isDarkMode ? '#fff' : '#7f4612' }]}>
             {calculateTotal().toFixed(2)} ₺
           </Text>
         </View>

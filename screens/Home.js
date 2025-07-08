@@ -17,16 +17,20 @@ import { useFilter } from '../contexts/FilterContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import SelectableOptions from '../components/SelectableOptions';
-import { getAllProducts } from '../utils/productUtils';
+import { categories, getAllProducts } from '../utils/productUtils';
 
 const ProductCard = React.memo(({ item, isFavorite, isFlashSale, hasFastDelivery, onProductPress, onFavoritePress, translations, isDarkMode }) => {
     const handleProductPress = useCallback(() => {
         onProductPress(item);
     }, [item, onProductPress]);
+    {/* Eğer item ya da onProductPress değişirse, useCallback fonksiyonu yeni bir versiyon üretir. Degismezse ayni fonksiyonu bellekte tutar.*/ }
+
 
     const handleFavoritePress = useCallback(() => {
         onFavoritePress(item.id);
     }, [item.id, onFavoritePress]);
+    {/* item.id veya onFavoritePress değişirse, o zaman yeni bir versiyon üretir. */ }
+
 
     return (
         <TouchableOpacity
@@ -94,15 +98,16 @@ export default function Home() {
     const [allProducts, setAllProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // FilterContext'ten gelen filtreleri kullan
+    // FilterContext'ten filters objesinin keylerine ulasma
     const { minPrice, maxPrice, selectedCategory, selectedSize } = filters;
 
     // Ürünleri yükle
     const loadProducts = useCallback(async () => {
         try {
             setLoading(true);
-            const products = await getAllProducts();
-            setAllProducts(products);
+            const products = await getAllProducts(); //productUtilsde tanimlanan fonksiyonu kullanir ve
+            //  her kategoriden 16 adet urun uretilmesini saglar.
+            setAllProducts(products); //allProducts degiskenine urunleri atama
         } catch (error) {
             console.error('Error loading products:', error);
         } finally {
@@ -130,7 +135,7 @@ export default function Home() {
 
     const parsePrice = (priceStr) => parseFloat(priceStr.replace('₺', '').replace(',', '.'));
 
-    const handleFilter = (min, max) => {
+    const handleFilter = (min, max) => { //Girilen fiyata gore filtreleme
         updateFilters({
             minPrice: min,
             maxPrice: max
@@ -139,20 +144,21 @@ export default function Home() {
 
     // Flash Sale ürünlerini belirle
     const flashSaleProducts = useMemo(() => {
-        const categories = ['Jacket', 'Pants', 'Shoes', 'T-Shirt'];
-        const flashSaleIds = new Set();
+        const flashSaleIds = new Set(); //Set içinde aynı değer birden fazla kez olamaz
 
+        // Her kategorideki en ucuz 6 urune FlashSale ozelligi eklendi.
         categories.forEach(category => {
             const categoryProducts = allProducts
                 .filter(product => product.category === category)
                 .sort((a, b) => parsePrice(a.price) - parsePrice(b.price))
                 .slice(0, 6);
-
+        // En ucuz 6 urunun Id si flashSaleIds kismina eklenir.
             categoryProducts.forEach(product => flashSaleIds.add(product.id));
         });
 
         return flashSaleIds;
-    }, [allProducts]);
+    }, [allProducts]); //allProducts degistiginde yeniden render edilir.
+
 
     // Fast Delivery ürünlerini belirle
     const fastDeliveryProducts = useMemo(() => {
@@ -194,13 +200,17 @@ export default function Home() {
             });
     }, [allProducts, searchText, minPrice, maxPrice, selectedCategory, selectedSize, sortOption, translations]);
 
+
+
     const handleProductPress = useCallback((product) => {
         navigation.navigate('ProductDetail', { product });
     }, [navigation]);
 
+
     const handleFavoritePress = useCallback((productId) => {
         toggleFavorite(productId);
     }, [toggleFavorite]);
+
 
     const renderItem = useCallback(({ item }) => {
         const isFavorite = favoriteItems[item.id];
@@ -221,6 +231,8 @@ export default function Home() {
         );
     }, [favoriteItems, flashSaleProducts, fastDeliveryProducts, handleProductPress, handleFavoritePress, translations, isDarkMode]);
 
+
+// Home.js sayfasi yuklenme asamasindaysa
     if (loading) {
         return (
             <View style={styles.loadingContainer}>

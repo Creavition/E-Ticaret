@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StyleSheet } from 'react-native';
@@ -13,6 +13,10 @@ import Filter from './screens/Filter';
 import Home from './screens/Home';
 import OrderHistory from './screens/OrderHistory';
 import ChangePassword from './screens/ChangePassword';
+
+// Splash Screen
+import SplashScreen
+ from './contexts/SplashScreen'; // Splash screen dosyanızın yolu
 
 // Contexts
 import { FavoritesProvider } from './contexts/FavoritesContext';
@@ -83,6 +87,17 @@ function AppNavigator() {
 }
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  // Splash screen'i belirli bir süre sonra gizlemek için
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 4000); // 4 saniye sonra gizle
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <ThemeProvider>
       <LanguageProvider>
@@ -91,7 +106,13 @@ export default function App() {
             <ProductProvider>
               <CartProvider>
                 <FavoritesProvider>
-                  <AppNavigator />
+                  {showSplash ? (
+                    <SplashScreen
+                      onAnimationEnd={() => setShowSplash(false)}
+                    />
+                  ) : (
+                    <AppNavigator />
+                  )}
                 </FavoritesProvider>
               </CartProvider>
             </ProductProvider>
