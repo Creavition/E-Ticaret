@@ -3,7 +3,7 @@ import { sizeMap } from '../utils/productUtils';
 
 
 const ProductContext = createContext();
-//ba
+
 export const ProductProvider = ({ children }) => {
     return (
         <ProductContext.Provider value={{ sizeMap }}>

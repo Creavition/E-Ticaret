@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from '../screens/Home';
+import Search from '../screens/Search';
 import { Ionicons } from '@expo/vector-icons';
 import Cart from '../screens/Cart';
 import Favorites from '../screens/Favorites';
@@ -33,6 +34,20 @@ export default function BottomTab() {
                     tabBarIcon: ({ focused, color, size }) => (
                         <Ionicons
                             name={focused ? 'home' : 'home-outline'}
+                            size={size}
+                            color={color}
+                        />
+                    ),
+                }}
+            />
+            <Tab.Screen
+                name="Search"
+                component={Search}
+                options={{
+                    tabBarLabel: "Arama",
+                    tabBarIcon: ({ focused, color, size }) => (
+                        <Ionicons
+                            name={focused ? 'search' : 'search-outline'}
                             size={size}
                             color={color}
                         />

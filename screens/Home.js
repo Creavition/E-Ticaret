@@ -1,509 +1,358 @@
+// screens/Home.js
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
-    View,
-    Text,
-    TextInput,
-    StyleSheet,
-    FlatList,
-    Image,
-    TouchableOpacity,
-    StatusBar,
-    Platform,
+    View, Text, StyleSheet, FlatList, StatusBar, TouchableOpacity, ScrollView,
+    Image
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
 import { useFavorites } from '../contexts/FavoritesContext';
-import { useFilter } from '../contexts/FilterContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
-import SelectableOptions from '../components/SelectableOptions';
+
+import ProductCardHorizontal from '../components/ProductCardHorizontal';
+
 import { categories, getAllProducts } from '../utils/productUtils';
-
-const ProductCard = React.memo(({ item, isFavorite, isFlashSale, hasFastDelivery, onProductPress, onFavoritePress, translations, isDarkMode }) => {
-    const handleProductPress = useCallback(() => {
-        onProductPress(item);
-    }, [item, onProductPress]);
-    {/* Eğer item ya da onProductPress değişirse, useCallback fonksiyonu yeni bir versiyon üretir. Degismezse ayni fonksiyonu bellekte tutar.*/ }
-
-
-    const handleFavoritePress = useCallback(() => {
-        onFavoritePress(item.id);
-    }, [item.id, onFavoritePress]);
-    {/* item.id veya onFavoritePress değişirse, o zaman yeni bir versiyon üretir. */ }
-
-
-    return (
-        <TouchableOpacity
-            onPress={handleProductPress}
-            style={[styles.card, { backgroundColor: isDarkMode ? '#333' : '#fff' }]}
-            activeOpacity={0.8}
-        >
-            {/* Flash Sale or Best Selling Badge */}
-            {isFlashSale ? (
-                <View style={styles.flashSaleBadge}>
-                    <Text style={styles.flashSaleText}>{translations.flashSale.split(' ')[0]}</Text>
-                    <Text style={styles.flashSaleText}>{translations.flashSale.split(' ')[1]}</Text>
-                </View>
-            ) : (
-                <View style={styles.bestSellingBadge}>
-                    <Text style={styles.bestSellingText}>{translations.bestSellingLine1}</Text>
-                    <Text style={styles.bestSellingText}>{translations.bestSellingLine2}</Text>
-                </View>
-            )}
-
-            <View style={styles.imageContainer}>
-                <Image source={{ uri: item.image }} style={styles.image} />
-                <TouchableOpacity
-                    onPress={handleFavoritePress}
-                    style={styles.favoriteIcon}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons
-                        name={isFavorite ? 'heart' : 'heart-outline'}
-                        size={20}
-                        color={isFavorite ? '#FF6B6B' : '#666'}
-                    />
-                </TouchableOpacity>
-            </View>
-
-            {/* Fast Delivery or BestSeller Label */}
-            {hasFastDelivery ? (
-                <View style={styles.fastDeliveryBadge}>
-                    <Ionicons name="flash" size={12} color="white" style={styles.deliveryIcon} />
-                    <Text style={styles.fastDeliveryText}>{translations.fastDelivery}</Text>
-                </View>
-            ) : (
-                <View style={styles.bestSellerBadge}>
-                    <Ionicons name="star" size={12} color="white" style={styles.deliveryIcon} />
-                    <Text style={styles.bestSellerText}>{translations.bestSeller}</Text>
-                </View>
-            )}
-
-            <Text style={[styles.name, { color: isDarkMode ? '#fff' : '#2c3e50' }]} numberOfLines={2}>{item.name}</Text>
-            <Text style={[styles.price, { color: isDarkMode ? '#fff' : '#FF6B35' }]}>{item.price}</Text>
-        </TouchableOpacity>
-    );
-});
 
 export default function Home() {
     const navigation = useNavigation();
-    const route = useRoute();
+
     const { favoriteItems, toggleFavorite } = useFavorites();
-    const { filters, updateFilters } = useFilter();
     const { translations, language } = useLanguage();
     const { theme, isDarkMode } = useTheme();
 
-    const [searchText, setSearchText] = useState('');
-    const [sortOption, setSortOption] = useState(null);
     const [allProducts, setAllProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // FilterContext'ten filters objesinin keylerine ulasma
-    const { minPrice, maxPrice, selectedCategory, selectedSize } = filters;
+    // parsePrice fonksiyonunu useCallback ile memoize et
+    const parsePrice = useCallback((str) => parseFloat(str.replace('₺', '').replace(',', '.')), []);
 
-    // Ürünleri yükle
+    // loadProducts fonksiyonunu dependency array'den parsePrice'ı kaldır
     const loadProducts = useCallback(async () => {
+        setLoading(true);
         try {
-            setLoading(true);
-            const products = await getAllProducts(); //productUtilsde tanimlanan fonksiyonu kullanir ve
-            //  her kategoriden 16 adet urun uretilmesini saglar.
-            setAllProducts(products); //allProducts degiskenine urunleri atama
-        } catch (error) {
-            console.error('Error loading products:', error);
+            const products = await getAllProducts();
+            setAllProducts(products);
+        } catch (e) {
+            console.error(e);
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, []); // parsePrice'ı dependency array'den kaldırdık
 
-    // Sayfa yüklendiğinde ve dil değiştiğinde ürünleri yükle
     useEffect(() => {
         loadProducts();
     }, [loadProducts, language]);
 
-    // Route params ile gelen filtreleri context'e kaydet
-    useEffect(() => {
-        if (route.params) {
-            const { minPrice, maxPrice, selectedCategory, selectedSize } = route.params;
-            updateFilters({
-                minPrice,
-                maxPrice,
-                selectedCategory,
-                selectedSize
-            });
-        }
-    }, [route.params, updateFilters]);
-
-    const parsePrice = (priceStr) => parseFloat(priceStr.replace('₺', '').replace(',', '.'));
-
-    const handleFilter = (min, max) => { //Girilen fiyata gore filtreleme
-        updateFilters({
-            minPrice: min,
-            maxPrice: max
-        });
-    };
-
-    // Flash Sale ürünlerini belirle
     const flashSaleProducts = useMemo(() => {
-        const flashSaleIds = new Set(); //Set içinde aynı değer birden fazla kez olamaz
-
-        // Her kategorideki en ucuz 6 urune FlashSale ozelligi eklendi.
-        categories.forEach(category => {
-            const categoryProducts = allProducts
-                .filter(product => product.category === category)
-                .sort((a, b) => parsePrice(a.price) - parsePrice(b.price))
-                .slice(0, 6);
-        // En ucuz 6 urunun Id si flashSaleIds kismina eklenir.
-            categoryProducts.forEach(product => flashSaleIds.add(product.id));
+        const ids = new Set();
+        const categoryList = categories || ['Jacket', 'Pants', 'Shoes', 'T-Shirt'];
+        categoryList.forEach(cat => {
+            allProducts.filter(p => p.category === cat)
+                .sort((a, b) => parseFloat(a.price.replace('₺', '').replace(',', '.')) - parseFloat(b.price.replace('₺', '').replace(',', '.')))
+                .slice(0, 6)
+                .forEach(p => ids.add(p.id));
         });
-
-        return flashSaleIds;
-    }, [allProducts]); //allProducts degistiginde yeniden render edilir.
-
-
-    // Fast Delivery ürünlerini belirle
-    const fastDeliveryProducts = useMemo(() => {
-        const fastDeliveryIds = new Set();
-        allProducts.forEach((product, index) => {
-            const hash = product.id.split('').reduce((a, b) => {
-                a = ((a << 5) - a) + b.charCodeAt(0);
-                return a & a;
-            }, 0);
-            if (Math.abs(hash) % 10 < 3) {
-                fastDeliveryIds.add(product.id);
-            }
-        });
-        return fastDeliveryIds;
+        return ids;
     }, [allProducts]);
 
-    // Filtreleme işlemi
-    const filteredProducts = useMemo(() => {
-        return allProducts
-            .filter((item) => {
-                const price = parsePrice(item.price);
-                const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase());
-                const matchesMin = !minPrice || price >= minPrice;
-                const matchesMax = !maxPrice || price <= maxPrice;
-                const matchesCategory = !selectedCategory || item.category === selectedCategory;
-                const matchesSize = !selectedSize || item.availableSizes.includes(selectedSize);
+    const fastDeliveryProducts = useMemo(() => {
+        const ids = new Set();
+        allProducts.forEach(p => {
+            const hash = p.id.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
+            if (Math.abs(hash) % 10 < 3) ids.add(p.id);
+        });
+        return ids;
+    }, [allProducts]);
 
-                return matchesSearch && matchesMin && matchesMax && matchesCategory && matchesSize;
-            })
-            .sort((a, b) => {
-                switch (sortOption) {
-                    case translations.lowestPrice:
-                        return parsePrice(a.price) - parsePrice(b.price);
-                    case translations.highestPrice:
-                        return parsePrice(b.price) - parsePrice(a.price);
-                    default:
-                        return 0;
-                }
-            });
-    }, [allProducts, searchText, minPrice, maxPrice, selectedCategory, selectedSize, sortOption, translations]);
+    const bestSellingProducts = useMemo(() => {
+        const ids = new Set();
+        allProducts.forEach(p => {
+            const hash = p.id.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
+            if (Math.abs(hash) % 10 >= 7) ids.add(p.id);
+        });
+        return ids;
+    }, [allProducts]);
 
 
+    const fastDeliveryFilteredProducts = useMemo(() => {
+        return allProducts.filter(item => fastDeliveryProducts.has(item.id));
+    }, [allProducts, fastDeliveryProducts]);
 
-    const handleProductPress = useCallback((product) => {
+    const flashSaleFilteredProducts = useMemo(() => {
+        return allProducts.filter(item => flashSaleProducts.has(item.id));
+    }, [allProducts, flashSaleProducts]);
+
+    const bestSellingFilteredProducts = useMemo(() => {
+        return allProducts.filter(item => bestSellingProducts.has(item.id));
+    }, [allProducts, bestSellingProducts]);
+
+
+    const handleProductPress = useCallback(product => {
         navigation.navigate('ProductDetail', { product });
     }, [navigation]);
 
-
-    const handleFavoritePress = useCallback((productId) => {
-        toggleFavorite(productId);
+    const handleFavoritePress = useCallback(productId => {
+        toggleFavorite(productId, 'Home');
     }, [toggleFavorite]);
 
+    // Optimize horizontal renderItem with stable references
+    const renderHorizontalItem = useCallback(({ item }) => (
+        <ProductCardHorizontal
+            item={item}
+            isFavorite={!!favoriteItems[item.id]}
+            isFlashSale={flashSaleProducts.has(item.id)}
+            hasFastDelivery={fastDeliveryProducts.has(item.id)}
+            isBestSelling={bestSellingProducts.has(item.id)}
+            onProductPress={handleProductPress}
+            onFavoritePress={handleFavoritePress}
+            translations={translations}
+            isDarkMode={isDarkMode}
+        />
+    ), [favoriteItems, flashSaleProducts, fastDeliveryProducts, bestSellingProducts, handleProductPress, handleFavoritePress, translations, isDarkMode]);
 
-    const renderItem = useCallback(({ item }) => {
-        const isFavorite = favoriteItems[item.id];
-        const isFlashSale = flashSaleProducts.has(item.id);
-        const hasFastDelivery = fastDeliveryProducts.has(item.id);
+    // Optimize keyExtractor
+    const keyExtractorFast = useCallback((item) => `fast-${item.id}`, []);
+    const keyExtractorFlash = useCallback((item) => `flash-${item.id}`, []);
+    const keyExtractorBest = useCallback((item) => `best-${item.id}`, []);
 
-        return (
-            <ProductCard
-                item={item}
-                isFavorite={isFavorite}
-                isFlashSale={isFlashSale}
-                hasFastDelivery={hasFastDelivery}
-                onProductPress={handleProductPress}
-                onFavoritePress={handleFavoritePress}
-                translations={translations}
-                isDarkMode={isDarkMode}
-            />
-        );
-    }, [favoriteItems, flashSaleProducts, fastDeliveryProducts, handleProductPress, handleFavoritePress, translations, isDarkMode]);
-
-
-// Home.js sayfasi yuklenme asamasindaysa
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <StatusBar
-                    barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-                    backgroundColor={theme.statusBarBackground}
-                    translucent={false}
-                />
-                <View style={styles.loadingContent}>
-                    <Ionicons name="refresh" size={40} color="#FF6B35" />
-                    <Text style={styles.loadingText}>{translations.loading}</Text>
-                </View>
+                <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={theme.statusBarBackground} />
+                <Ionicons name="refresh" size={40} color="#FF6B35" />
+                <Text style={styles.loadingText}>{translations.loading}</Text>
             </View>
         );
     }
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.background }]}>
-            <StatusBar
-                barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-                backgroundColor={theme.statusBarBackground}
-                translucent={false}
-            />
+        <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
+            <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={theme.statusBarBackground} />
 
-            {/* Search and filters */}
-            <View style={[styles.headerContainer, { backgroundColor: theme.background }]}>
-                {/* Search Box */}
-                <View style={[styles.searchBox, { backgroundColor: theme.background, borderColor: "black" }]}>
-                    <Ionicons name="search" size={22} color={theme.textSecondary} style={styles.searchIcon} />
-                    <TextInput
-                        style={[styles.textInput, { color: theme.text }]}
-                        placeholder={translations.searchForProducts}
-                        placeholderTextColor={theme.textTertiary}
-                        value={searchText}
-                        onChangeText={setSearchText}
-                    />
-                    {searchText.length > 0 && (
-                        <TouchableOpacity onPress={() => setSearchText('')}>
-                            <Ionicons name="close" size={20} color={theme.textSecondary} />
-                        </TouchableOpacity>
-                    )}
+
+            {/* Header */}
+            <View style={[styles.header, { backgroundColor: theme.surface || '#fff' }]}>
+                <View style={styles.headerContent}>
+                    <Image style={{ width: 60, height: 60, marginBottom: 10 }} source={require("../assets/images/KombinSepeti-logo-kucuk.png")} />
+                    <Text style={[styles.headerTitle, { color: theme.text }]}>Ana Sayfa</Text>
                 </View>
-
-                {/* Filter Options */}
-                <SelectableOptions onSelect={setSortOption} onFilter={handleFilter} />
             </View>
 
-            {/* Products List */}
-            <FlatList
-                data={filteredProducts}
-                keyExtractor={(item) => item.id}
-                renderItem={renderItem}
-                numColumns={2}
-                columnWrapperStyle={styles.columnWrapper}
-                contentContainerStyle={styles.productList}
-                showsVerticalScrollIndicator={false}
-                removeClippedSubviews={true}
-                maxToRenderPerBatch={8}
-                updateCellsBatchingPeriod={50}
-                initialNumToRender={6}
-                windowSize={8}
-                keyboardShouldPersistTaps="handled"
-                ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                        <Ionicons name="search" size={60} color="#ccc" />
-                        <Text style={styles.emptyText}>Ürün bulunamadı</Text>
+
+
+            {/* Fast Delivery Bölümü */}
+            {fastDeliveryFilteredProducts.length > 0 && (
+                <View style={[styles.specialSectionContainer, { backgroundColor: theme.surface || '#fff' }]}>
+                    <View style={[styles.sectionHeader, { backgroundColor: theme.surface || '#fff' }]}>
+                        <View style={styles.sectionHeaderLeft}>
+                            <Ionicons name="flash" size={24} color="#FF6B35" />
+                            <View>
+                                <Text style={[styles.sectionTitle, { color: theme.text }]}>Fast Delivery</Text>
+                                <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
+                                    {fastDeliveryFilteredProducts.length} ürün
+                                </Text>
+                            </View>
+                        </View>
+                        <TouchableOpacity
+                            style={styles.viewAllButton}
+                            onPress={() => navigation.navigate('FastDelivery')}
+                        >
+                            <Text style={styles.viewAllText}>Tümü</Text>
+                            <Ionicons name="chevron-forward" size={14} color="#fff" />
+                        </TouchableOpacity>
                     </View>
-                }
-            />
-        </View>
+                    <FlatList
+                        data={fastDeliveryFilteredProducts}
+                        keyExtractor={keyExtractorFast}
+                        renderItem={renderHorizontalItem}
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.horizontalList}
+                        removeClippedSubviews={true}
+                        initialNumToRender={10}
+                        maxToRenderPerBatch={16}
+                        windowSize={3}
+                    />
+                </View>
+            )}
+
+            {/* Flash Sale Bölümü */}
+            {flashSaleFilteredProducts.length > 0 && (
+                <View style={[styles.specialSectionContainer, { backgroundColor: theme.surface || '#fff' }]}>
+                    <View style={[styles.sectionHeader, { backgroundColor: theme.surface || '#fff' }]}>
+                        <View style={styles.sectionHeaderLeft}>
+                            <Ionicons name="pricetag" size={24} color="#FF6B35" />
+                            <View>
+                                <Text style={[styles.sectionTitle, { color: theme.text }]}>Flash Sale</Text>
+                                <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
+                                    {flashSaleFilteredProducts.length} ürün
+                                </Text>
+                            </View>
+                        </View>
+                        <TouchableOpacity
+                            style={styles.viewAllButton}
+                            onPress={() => navigation.navigate('FlashSale')}
+                        >
+                            <Text style={styles.viewAllText}>Tümü</Text>
+                            <Ionicons name="chevron-forward" size={14} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
+                    <FlatList
+                        data={flashSaleFilteredProducts}
+                        keyExtractor={keyExtractorFlash}
+                        renderItem={renderHorizontalItem}
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.horizontalList}
+                        removeClippedSubviews={true}
+                        initialNumToRender={10}
+                        maxToRenderPerBatch={16}
+                        windowSize={3}
+                    />
+                </View>
+            )}
+
+            {/* Best Selling Bölümü */}
+            {bestSellingFilteredProducts.length > 0 && (
+                <View style={[styles.specialSectionContainer, { backgroundColor: theme.surface || '#fff' }]}>
+                    <View style={[styles.sectionHeader, { backgroundColor: theme.surface || '#fff' }]}>
+                        <View style={styles.sectionHeaderLeft}>
+                            <Ionicons name="star" size={24} color="#FF6B35" />
+                            <View>
+                                <Text style={[styles.sectionTitle, { color: theme.text }]}>Best Seller</Text>
+                                <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
+                                    {bestSellingFilteredProducts.length} ürün
+                                </Text>
+                            </View>
+                        </View>
+                        <TouchableOpacity
+                            style={styles.viewAllButton}
+                            onPress={() => navigation.navigate('BestSeller')}
+                        >
+                            <Text style={styles.viewAllText}>Tümü</Text>
+                            <Ionicons name="chevron-forward" size={14} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
+                    <FlatList
+                        data={bestSellingFilteredProducts}
+                        keyExtractor={keyExtractorBest}
+                        renderItem={renderHorizontalItem}
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.horizontalList}
+                        removeClippedSubviews={true}
+                        initialNumToRender={15}
+                        maxToRenderPerBatch={15}
+                        windowSize={3}
+                    />
+                </View>
+            )}
+
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        paddingTop: 23,
         flex: 1,
-        backgroundColor: '#fff',
-    },
-    headerContainer: {
-        backgroundColor: '#fff',
-        paddingBottom: 20,
-        paddingHorizontal: 20,
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        zIndex: 1000, // Header için z-index eklendi
-        position: 'relative', // Position eklendi
+        backgroundColor: '#fff'
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f8f9fa',
-    },
-    loadingContent: {
-        alignItems: 'center',
-        padding: 20,
+        backgroundColor: '#f8f9fa'
     },
     loadingText: {
+        marginTop: 10,
         fontSize: 16,
         color: '#666',
-        marginTop: 10,
-        fontWeight: '500',
+        fontWeight: '500'
     },
-    searchBox: {
+    header: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#f8f9fa',
-        borderRadius: 16,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        marginBottom: 15,
-        marginTop: 15, // Üstte biraz boşluk ekledik
-        borderWidth: 1,
-        borderColor: '#e9ecef',
-    },
-    textInput: {
-        flex: 1,
-        color: '#333',
-        fontSize: 16,
-        fontWeight: '400',
-    },
-    searchIcon: {
-        marginRight: 12,
-    },
-    columnWrapper: {
-        justifyContent: 'space-between',
-        paddingHorizontal: 15,
-    },
-    productList: {
+        justifyContent: 'center',
+        paddingHorizontal: 10,
+        paddingVertical: 15,
         paddingTop: 20,
-        paddingBottom: 100,
-        zIndex: 1, // Ürün listesi için düşük z-index
-    },
-    card: {
         backgroundColor: '#fff',
-        width: '48%',
-        marginBottom: 20,
-        borderRadius: 16,
-        padding: 12,
-        alignItems: 'center',
-        position: 'relative',
-        elevation: 3,
+        elevation: 2,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
     },
-    imageContainer: {
-        width: '100%',
-        alignItems: 'center',
-        marginBottom: 12,
-        position: 'relative',
-    },
-    image: {
-        width: 130,
-        height: 130,
-        borderRadius: 12,
-        backgroundColor: '#f8f9fa',
-    },
-    favoriteIcon: {
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderRadius: 20,
-        padding: 8,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
-    },
-    flashSaleBadge: {
-        position: 'absolute',
-        top: 8,
-        left: 8,
-        backgroundColor: '#FF4757',
-        borderRadius: 12,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        zIndex: 1,
-        alignItems: 'center',
-        elevation: 2,
-    },
-    flashSaleText: {
-        color: 'white',
-        fontSize: 9,
-        fontWeight: 'bold',
-        lineHeight: 11,
-    },
-    bestSellingBadge: {
-        position: 'absolute',
-        top: 8,
-        left: 8,
-        backgroundColor: '#FF6B35',
-        borderRadius: 12,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        zIndex: 1,
-        alignItems: 'center',
-        elevation: 2,
-    },
-    bestSellingText: {
-        color: 'white',
-        fontSize: 9,
-        fontWeight: 'bold',
-        lineHeight: 11,
-    },
-    fastDeliveryBadge: {
-        backgroundColor: '#2ED573',
-        width: '100%',
-        paddingVertical: 6,
-        marginTop: 8,
-        alignItems: 'center',
-        borderRadius: 8,
+    headerContent: {
         flexDirection: 'row',
+        alignItems: "center",
         justifyContent: 'center',
     },
-    fastDeliveryText: {
-        fontSize: 11,
-        color: 'white',
-        fontWeight: '600',
-        marginLeft: 4,
-    },
-    bestSellerBadge: {
-        backgroundColor: '#FF6B35',
-        width: '100%',
-        paddingVertical: 6,
-        marginTop: 8,
-        alignItems: 'center',
-        borderRadius: 8,
-        flexDirection: 'row',
-        justifyContent: 'center',
-    },
-    bestSellerText: {
-        fontSize: 11,
-        color: 'white',
-        fontWeight: '600',
-        marginLeft: 4,
-    },
-    deliveryIcon: {
-        marginRight: 2,
-    },
-    name: {
-        fontSize: 15,
-        fontWeight: '600',
-        marginTop: 12,
-        textAlign: 'center',
-        color: '#2c3e50',
-        lineHeight: 20,
-    },
-    price: {
-        fontSize: 16,
-        color: '#FF6B35',
-        marginTop: 6,
+    headerTitle: {
+        fontSize: 24,
         fontWeight: '700',
+        color: '#333',
+        marginLeft: 8,
     },
-    emptyContainer: {
-        flex: 1,
-        justifyContent: 'center',
+    specialSectionContainer: {
+        marginTop: 25,
+        marginBottom: 25,
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        marginHorizontal: 15,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 5,
+        overflow: 'hidden',
+    },
+    sectionHeader: {
+        flexDirection: 'row',
         alignItems: 'center',
-        paddingTop: 100,
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingVertical: 20,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#f5f5f5',
     },
-    emptyText: {
+    sectionHeaderLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    sectionTitle: {
         fontSize: 18,
-        color: '#999',
-        marginTop: 20,
-        fontWeight: '500',
+        fontWeight: '700',
+        color: '#333',
+        marginLeft: 12,
+    },
+    sectionSubtitle: {
+        fontSize: 12,
+        color: '#666',
+        marginLeft: 12,
+        marginTop: 2,
+    },
+    viewAllButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        backgroundColor: '#FF6B35',
+        borderRadius: 18,
+    },
+    viewAllText: {
+        fontSize: 12,
+        color: '#fff',
+        fontWeight: '600',
+        marginRight: 4,
+    },
+    horizontalList: {
+        paddingHorizontal: 16,
+        paddingVertical: 16,
+        flexGrow: 1,
     },
 });

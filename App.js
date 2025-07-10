@@ -13,6 +13,9 @@ import Filter from './screens/Filter';
 import Home from './screens/Home';
 import OrderHistory from './screens/OrderHistory';
 import ChangePassword from './screens/ChangePassword';
+import FastDelivery from './screens/FastDelivery';
+import FlashSale from './screens/FlashSale';
+import BestSeller from './screens/BestSeller';
 
 // Splash Screen
 import SplashScreen
@@ -80,6 +83,21 @@ function AppNavigator() {
           name="ChangePassword"
           component={ChangePassword}
           options={{ title: translations.changePassword, headerShown: false }}
+        />
+        <Stack.Screen
+          name="FastDelivery"
+          component={FastDelivery}
+          options={{ title: 'Fast Delivery', headerShown: false }}
+        />
+        <Stack.Screen
+          name="FlashSale"
+          component={FlashSale}
+          options={{ title: 'Flash Sale', headerShown: false }}
+        />
+        <Stack.Screen
+          name="BestSeller"
+          component={BestSeller}
+          options={{ title: 'BestSeller', headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>
